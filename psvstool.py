@@ -123,7 +123,9 @@ class ScenarioLine:
 			else:
 				if parsplit[0] == 'extoff=0': # 修复错误
 					self.newparameters += ' textoff=0'
-				elif parsplit[0]: self.newparameters += ' ' + parsplit[0]
+				elif parsplit[0]: 
+					if not self.macro == 'PAGE': self.newparameters += ' '
+					self.newparameters += parsplit[0]
 
 	def get_macro(self):
 		if self.ismessage: # 文本内容直接退出
@@ -371,7 +373,7 @@ def parse_args():
 def convert_verb(args):
 	if not os.path.exists(args.input):
 		parser.print_usage()
-		print('error: the following file or folder does not exist: ' + args.input)
+		print('Error: the following file or folder does not exist: ' + args.input)
 		sys.exit(20)
 
 	if os.path.isfile(args.input):
