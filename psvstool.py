@@ -121,7 +121,9 @@ class ScenarioLine:
 						continue
 					self.newparameters += ' `%s=%s' % (parsplit[0], parsplit[1])
 			else:
-				if parsplit[0] == 'extoff=0': # 修复错误
+				if self.macro == 'FCAL':
+					self.newparameters += ' storage=%s' % (call[parsplit[0]] if parsplit[0] in call.keys() else parsplit[0])
+				elif parsplit[0] == 'extoff=0': # 修复错误
 					self.newparameters += ' textoff=0'
 				elif parsplit[0]: 
 					if not self.macro == 'PAGE': self.newparameters += ' '

@@ -298,6 +298,6 @@ layer = {
 	'255':'all'
 }
 
-special_macro = { 'target':target, 'page':page, 'call':call, 'rule':rule, 'pos':pos, 'layer':layer }
+special_macro = { 'target':target, 'page':page, 'rule':rule, 'pos':pos, 'layer':layer }
 
 # @s(28) @large @s(16) @small
