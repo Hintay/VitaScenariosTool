@@ -1,3 +1,21 @@
+# Macros Corresponding List
+# comes with ABSOLUTELY NO WARRANTY.
+# Copyright (C) 2016 Hintay <hintay@me.com>
+#
+# This file is part of Vita Scenarios Converter.
+
+###########
+# Special
+###########
+ignore_macro = ['SYNC', 'KMW2']
+# 有括号
+brackets_macro = ['BTXO', 'BIVF', 'MPAU']
+# 无逗号
+no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH']
+
+ignore_parameters = ['002', '237', '238', '239']
+###########
+
 macros = {
 	'BFNT':'@font',
 	'BIED':'@interlude_end',
@@ -85,8 +103,11 @@ macros = {
 	#'MSAD':'', #文本框
 }
 # @smudge @blur @smudgeoff @bluroff @slideopencombo @slideclosecombo @pasttime 被_CFAD所替代
-# @shortcutkey @history 
-#_WKST(G054,1; @night_start _WKST(G011,1; 真・冒頭-16.ini
+# @shortcutkey @history 被去除
+
+# _WKST(G054,1; @night_start _WKST(G011,1; 真・冒頭-16.ini
+# _QJMP(_D990,quiz14_correct,quiz14_incorrect; @quiz success=*page11 failed=*page12
+# _HFTF(0,`026:クイズタイガー編クリア,`235:1; @eval exp="tf['クイズタイガー編クリア']=true"
 
 # 以`开头
 parameters = {
@@ -279,22 +300,4 @@ layer = {
 
 special_macro = { 'target':target, 'page':page, 'call':call, 'rule':rule, 'pos':pos, 'layer':layer }
 
-ignore_macro = ['SYNC', 'KMW2']
-
-# 有括号
-brackets_macro = ['BTXO', 'BIVF', 'MPAU']
-
-# 无逗号
-no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH']
-
-# _ZM4be03( [block len=9] 0x8145 _ZM数字可对应为 ;数字
 # @s(28) @large @s(16) @small
-# MSAD 对应
-# ^ = 换行 ^^ = 换行+@r 行中为[br]
-# @a(id) = call _SYNC
-# @c(0,0,0) = [font color=0x000000]
-# @n 包含下一行的macro
-# <瀕,ひん> = [ruby text=ひん]瀕
-# _QJMP(_D990,quiz14_correct,quiz14_incorrect; @quiz success=*page11 failed=*page12
-# _HFTF(0,`026:クイズタイガー編クリア,`235:1; @eval exp="tf['クイズタイガー編クリア']=true"
-# [wacky len=3] [block 0X8145

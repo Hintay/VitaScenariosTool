@@ -1,3 +1,9 @@
+# Vita Scenarios Converter
+# comes with ABSOLUTELY NO WARRANTY.
+# Copyright (C) 2016 Hintay <hintay@me.com>
+#
+# The scenario files that extracted from PSV conversion utility
+
 from macroslist import *
 import os
 import re
@@ -111,7 +117,7 @@ class ScenarioLine:
 					# /特殊对应参数
 					self.newparameters += ' %s=%s' % (parameters[parsplit[0]], parsplit[1])
 				else: # 没有相应的参数
-					if parsplit[0] == '002':
+					if parsplit[0] in ignore_parameters:
 						continue
 					self.newparameters += ' `%s=%s' % (parsplit[0], parsplit[1])
 			else:
