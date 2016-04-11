@@ -83,9 +83,9 @@ class ScenarioLine:
 			del self.parameters[0] # 使用后移除参数
 		# 无对应macro，例：*page
 		except TypeError:
-			touch = ''
+			pass
 		except KeyError:
-			touch = ''
+			pass
 
 	# 获取宏名字
 	def get_macro_name(self):
