@@ -76,7 +76,7 @@ class ScenarioLine:
 			else:
 				self.macro_subtype = macro_types[1]
 		try: # 有对应macro则删除参数
-			touch = macros[self.macro][self.macro_type]
+			macros[self.macro][self.macro_type]
 			del self.parameters[0] # 使用后移除参数
 		# 无对应macro，例：*page
 		except TypeError:
@@ -121,12 +121,14 @@ class ScenarioLine:
 				# 语音标签
 				if self.macro == 'VPLY':
 					voice_split = parsplit[0].split(',')
-					#self.newparameters += ' storage=%s_%s' % (voice_split[0], voice_split[1])
-					try:
-						voice_storage = int(voice_split[1], 16)
-					except ValueError: # '_____'
-						voice_storage = ''
-					self.newparameters += ' name=%s storage=%s' % (voice_split[0], voice_storage)
+					if not voice_split[1] == '_____':
+						self.newparameters += ' storage=%s_%s' % (voice_split[0], voice_split[1])
+					# Decimal
+					#try:
+					#	voice_storage = int(voice_split[1], 16)
+					#except ValueError: # '_____'
+					#	voice_storage = ''
+					#self.newparameters += ' name=%s storage=%s' % (voice_split[0], voice_storage)
 				# 语音等待标签
 				elif self.macro == 'WTVT':
 					self.newparameters += ' time=%s' % parsplit[0]
@@ -134,7 +136,7 @@ class ScenarioLine:
 					self.newparameters += ' storage=%s' % (call[parsplit[0]] if parsplit[0] in call.keys() else parsplit[0])
 				elif parsplit[0] == 'extoff=0': # 修复错误
 					self.newparameters += ' textoff=0'
-				elif parsplit[0]: 
+				elif parsplit[0]:
 					if not self.macro == 'PAGE': self.newparameters += ' '
 					self.newparameters += parsplit[0]
 
@@ -211,7 +213,7 @@ class ScenarioMessage:
 		# 处理行内的 Marco： @n 或 @a(id)
 		# ！注意！ @a 与 @n 会出现在同一行！@a 比 @n 先出现
 		# ！注意！ @a 可能会多次出现！
-		# 
+		#
 		# @a(ID) ID与 _SYNC( 中 ID 相同
 		# 不用管有 @a 行中的 @n
 		if(newlines.find('@a') >= 0):
@@ -232,20 +234,21 @@ class ScenarioMessage:
 
 		self.newlines += newlines
 
-	def handle_hful_macro(self, content):
+	@classmethod
+	def handle_hful_macro(cls, content):
 		new_content = ''
-		for i in range(len(content)):
-			if content[i] == '。': continue
+		for index, value in enumerate(content):
+			if value == '。': continue
 			try:
-				char = (content[i] + content[i+1]) if content[i+1] == '。' else content[i]
+				char = (value + content[index+1]) if content[index+1] == '。' else value
 			except IndexError:
-				char = content[i]
-			new_content += '[hfu]' + char + '[hfl]' + char
+				char = value
+			new_content += '[hfu]%s[hfl]%s' % (char, char)
 		return new_content
 
 	# 行内 Macros 结束
-	def end_inline_macros(self, type):
-		if type == 'a':
+	def end_inline_macros(self, end_type):
+		if end_type == 'a':
 			# 重置 Flag
 			self.need_next = False
 			# 正则替换行内的@a(ID)
@@ -291,10 +294,6 @@ class ScenarioMessage:
 		content = re.sub(b'((?:\xec\x4a)(?:\xec\x46)*(?:\xec\x48))',
 			lambda m: b'[line len=' + str(int(len(m.group(1))/2)).encode(encoding) + b']', content)
 		# 处理Block宏
-		'''
-		content = re.sub(b'(\x81\x45){2:}',
-			lambda m: b'[block len=' + str(int(len(m.group(1))/2)).encode(encoding) + b']', content)
-		'''
 		content = re.sub(b'((?:\xec\x4b)(?:\xec\x47)*(?:\xec\x49))',
 			lambda m: b'[block len=' + str(int(len(m.group(1))/2)).encode(encoding) + b']', content)
 		# 解码为unicode
@@ -317,14 +316,16 @@ class ScenarioMessage:
 		return content
 
 	# For re.sub
-	def get_ruby_macro(self, m):
+	@classmethod
+	def get_ruby_macro(cls, m):
 		ruby_macro = '[ruby text=' + m.group(2)
 		if len(m.group(1)) > 1: ruby_macro += ' char=' + str(len(m.group(1)))
 		ruby_macro += ']' + m.group(1)
 		return ruby_macro
 
 	# For re.sub
-	def get_beginning_r_macro(self, m):
+	@classmethod
+	def get_beginning_r_macro(cls, m):
 		br_count = len(m.group(1))
 		return '@r\n' * (br_count - 1) if br_count > 1 else ''
 
@@ -367,7 +368,7 @@ class ScenarioFile:
 		fs = codecs.open(self.basename+'.ks', 'w', 'u16') # 文本方式打开
 		new_file = ''
 		for line in self.newlines:
-			if not line == '': 
+			if not line == '':
 				# ~ 号需要特殊处理
 				line = line.replace('〜', '～')
 				new_file += line + '\n'
@@ -388,13 +389,13 @@ def convert_verb(args):
 		sys.exit(20)
 
 	if os.path.isfile(args.input):
-		scenario_file = ScenarioFile(args.input)
+		ScenarioFile(args.input)
 	else: # 文件夹
 		os.chdir(args.input)
 		for file in os.listdir('.'):
 			if file.endswith('ini'):
 				#print(file.encode('GBK', 'ignore').decode('GBK'))
-				scenario_file = ScenarioFile(file)
+				ScenarioFile(file)
 
 if __name__ == '__main__':
 	parser, args = parse_args()

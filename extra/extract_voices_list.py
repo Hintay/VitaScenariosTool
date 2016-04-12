@@ -5,7 +5,6 @@
 # 提取语音名称与角色对应的列表
 
 import os
-import re
 import sys
 import codecs
 import argparse
@@ -50,7 +49,7 @@ def extract_verb(args):
 	os.chdir(args.input)
 	for file in os.listdir('.'):
 		if file.endswith('ini'):
-			scenario_file = voices.loop_file(file)
+			voices.loop_file(file)
 	voices.output_file()
 
 if __name__ == '__main__':

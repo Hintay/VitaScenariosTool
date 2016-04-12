@@ -38,7 +38,7 @@ class ChangeVoiceName:
 		print(new_name)
 		try:
 			os.rename(file_path, os.path.join(self.folder, new_name))
-		except:
+		except WindowsError:
 			pass
 
 	def match_number(self, file_name):

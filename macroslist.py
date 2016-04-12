@@ -21,7 +21,6 @@ macros = {
 	'BIED':'@interlude_end',
 	'BIVF':{'0':'@visibleframe', '1':'@invisibleframe'},
 	'BIST':'@interlude_start',
-	'BIED':'@interlude_end',
 	'BRET':'@return',
 	'BTXO':{'0':'@textoff', '1':'@texton'},
 	'CFAD':{'0':'@fadein', '2':'@rep'},
@@ -170,7 +169,7 @@ parameters = {
 	'101':'deg',
 	'111':'overlap',
 	#'113':'', #_KDSH @dash
-	'114':'monocro', 
+	'114':'monocro',
 	'115':'both', #_KFMV @movefg
 	'116':'mover', #_KMLP @loopmove
 	'117':'frame',
@@ -291,7 +290,7 @@ pos = {
 	'3':'lc',
 	'4':'rc',
 	'5':'c',
-	'1ower':'lower', #替换文本 
+	'1ower':'lower', #替换文本
 }
 
 layer = {
