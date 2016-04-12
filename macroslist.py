@@ -7,11 +7,11 @@
 ###########
 # Special
 ###########
-ignore_macro = ['SYNC', 'KMW2']
+ignore_macro = ['SYNC', 'KMW2', 'HFUL']
 # 有括号
-brackets_macro = ['BTXO', 'BIVF', 'MPAU']
+brackets_macro = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
 # 无逗号
-no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH']
+no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT']
 
 ignore_parameters = ['002', '237', '238', '239']
 ###########
@@ -93,6 +93,8 @@ macros = {
 	'TDSP':{'0':'@displayedoff', '1':'@displayedon'},
 	'TPG0':'@pg',
 	'TWND':{'0':'@setdaytime', '1':'@setnighttime'},
+	'VPLY':'@say',
+	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '0acanskip=false':'@wait acanskip=false'},
 	'WTKY':'@lr',
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':''},

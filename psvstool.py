@@ -33,12 +33,11 @@ class ScenarioLine:
 		self.matchs = re.match(b'^_(.*?)\((.*)', self.line)
 		if(self.matchs): # 匹配至(宏)(宏参数)
 			self.macro = self.matchs.group(1).decode()
-			# 占位 - 判断语音
-
-			if(self.macro == 'HFUL'):
+			if(self.macro in ignore_macro):
 				return
+
 			# 判断文本
-			elif(self.macro == 'MSAD' or self.macro == 'MSA2'):
+			elif(self.macro[:3] == 'MSA'):
 				self.ismessage = True
 				self.parameters = self.matchs.group(2)
 				return
@@ -49,8 +48,6 @@ class ScenarioLine:
 				return
 			# /判断文本
 
-			elif(self.macro in ignore_macro):
-				return
 			elif(self.macro in macros.keys()): # macro 列表中有匹配
 				if self.matchs.group(2): # 若有参数
 					self.parameters = self.matchs.group(2).split(bytes(',`', encoding)) # 分割后[0]为宏参数
@@ -66,11 +63,11 @@ class ScenarioLine:
 
 	# 匹配宏类型
 	def match_macro_type(self):
+		if self.macro in brackets_macro and self.parameters[0][-1:] == b')':
+			self.parameters[0] = self.parameters[0][:-1]
 		if not self.parameters or self.ismessage or self.macro in no_comma_macro:
 			return
 		parameter = self.parameters[0]
-		if self.macro in brackets_macro and parameter[-1:] == b')':
-			parameter = parameter[:-1]
 		macro_types = parameter.decode(encoding).split(',')
 		self.macro_type = macro_types[0]
 		if len(macro_types) > 1: # 宏子类型
@@ -121,7 +118,19 @@ class ScenarioLine:
 						continue
 					self.newparameters += ' `%s=%s' % (parsplit[0], parsplit[1])
 			else:
-				if self.macro == 'FCAL':
+				# 语音标签
+				if self.macro == 'VPLY':
+					voice_split = parsplit[0].split(',')
+					#self.newparameters += ' storage=%s_%s' % (voice_split[0], voice_split[1])
+					try:
+						voice_storage = int(voice_split[1], 16)
+					except ValueError: # '_____'
+						voice_storage = ''
+					self.newparameters += ' name=%s storage=%s' % (voice_split[0], voice_storage)
+				# 语音等待标签
+				elif self.macro == 'WTVT':
+					self.newparameters += ' time=%s' % parsplit[0]
+				elif self.macro == 'FCAL':
 					self.newparameters += ' storage=%s' % (call[parsplit[0]] if parsplit[0] in call.keys() else parsplit[0])
 				elif parsplit[0] == 'extoff=0': # 修复错误
 					self.newparameters += ' textoff=0'
