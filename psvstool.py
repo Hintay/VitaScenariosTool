@@ -184,6 +184,15 @@ class ScenarioMessage:
 			if lineinfo.parameters: # 内容处理
 				self.handle_message_line(lineinfo.parameters)
 		else:
+			# 特殊情况重置 - 语音
+			if lineinfo.macro == 'VPLY':
+				if self.temp_need_next > 0:
+					self.end_inline_macros('n')
+				elif self.need_next:
+					self.end_inline_macros('a')
+				self.newlines += '\n'+lineinfo.newline
+				return
+
 			# 将 Macro 的 @ 替换为 [
 			if lineinfo.newline[:1] == '@':
 				self.inline_macros += '[' + lineinfo.newline[1:] +']'
