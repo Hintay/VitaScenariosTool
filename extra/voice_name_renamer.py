@@ -6,6 +6,7 @@
 
 from voices_character import *
 import os
+import sys
 
 class ChangeVoiceName:
 	def __init__(self, folder):
@@ -51,8 +52,8 @@ class ChangeVoiceName:
 			voice_number = name_split[0]
 		return voice_number
 
-voice_folders = ['voice1', 'voice2']
 def change_filenames():
+	voice_folders = ['voice1', 'voice2']
 	for folder in voice_folders:
 		ChangeVoiceName(folder)
 
