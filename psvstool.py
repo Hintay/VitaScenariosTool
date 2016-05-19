@@ -21,6 +21,7 @@ class ScenarioLine:
 		self.macro = None
 		self.macro_type = None
 		self.macro_subtype = None
+		self.macro_comment_out = False # 该行是否需要注释
 		self.parameters = ''
 		self.newparameters = ''
 		self.matchs = None
@@ -121,14 +122,13 @@ class ScenarioLine:
 				# 语音标签
 				if self.macro == 'VPLY':
 					voice_split = parsplit[0].split(',')
-					if not voice_split[1] == '_____':
-						self.newparameters += ' storage=%s_%s' % (voice_split[0], voice_split[1])
-					# Decimal
-					#try:
-					#	voice_storage = int(voice_split[1], 16)
-					#except ValueError: # '_____'
-					#	voice_storage = ''
-					#self.newparameters += ' name=%s storage=%s' % (voice_split[0], voice_storage)
+					try: # 格式检查
+						voice_storage = ' storage=%s_%05x' % (voice_split[0], int(voice_split[1], 16))
+					except ValueError: # '_____' 或其它
+						self.macro_comment_out = True
+						voice_storage = ' ' + parsplit[0]
+						#voice_storage = ' storage=%s_%s' % (voice_split[0], voice_split[1])
+					self.newparameters += voice_storage
 				# 语音等待标签
 				elif self.macro == 'WTVT':
 					self.newparameters += ' time=%s' % parsplit[0]
@@ -147,6 +147,7 @@ class ScenarioLine:
 		macro = self.get_macro_name()
 		if(macro): # 有对应的 macro 名
 			self.get_parameters() # 格式化参数
+			if(self.macro_comment_out): self.newline += ';'
 			self.newline += macro
 			self.newline += self.newparameters
 		else:
