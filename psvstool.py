@@ -323,8 +323,8 @@ class ScenarioMessage:
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
 			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
 		# @s(28) [large] @s(16) [small]
-		content = content.replace('@s(28)', '[large]')
-		content = content.replace('@s(16)', '[small]')
+		content = '@large' if(content[:6] == '@s(28)') else content.replace('@s(28)', '[large]')
+		content = '@small' if(content[:6] == '@s(16)') else content.replace('@s(16)', '[small]')
 		return content
 
 	# For re.sub
