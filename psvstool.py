@@ -113,7 +113,11 @@ class ScenarioLine:
 							self.newparameters += ' %s=%s' % (parameters[parsplit[0]], special_macro[parameters[parsplit[0]]][parsplit[1]])
 							continue
 					# /特殊对应参数
-					self.newparameters += ' %s=%s' % (parameters[parsplit[0]], parsplit[1])
+					if self.macro == 'IRIW' and parsplit[0] == '075' and parsplit[1][:6] == '_PAGE(':
+						# 特殊修正
+						self.newparameters += ' ' + parameters[parsplit[0]] + '=*page' + parsplit[1][6] + ' ' + parsplit[1][7:]
+					else:
+						self.newparameters += ' %s=%s' % (parameters[parsplit[0]], parsplit[1])
 				else: # 没有相应的参数
 					if parsplit[0] in ignore_parameters:
 						continue
@@ -132,6 +136,8 @@ class ScenarioLine:
 				# 语音等待标签
 				elif self.macro == 'WTVT':
 					self.newparameters += ' time=%s' % parsplit[0]
+				elif self.macro == 'KDLY':
+					self.newparameters += ' speed=%s' % 'user' if parsplit[0] == '0' else parsplit[0]
 				elif self.macro == 'FCAL':
 					self.newparameters += ' storage=%s' % (call[parsplit[0]] if parsplit[0] in call.keys() else parsplit[0])
 				elif parsplit[0] == 'extoff=0': # 修复错误
@@ -180,13 +186,14 @@ class ScenarioMessage:
 			# /特殊情况重置
 
 			if lineinfo.messageid: # 有 ID 则加上 ID 注释
+				if self.newlines != '': self.newlines += '\n'
 				self.newlines += ';%d, %s\n' % (int(lineinfo.messageid, 16), lineinfo.messageid)
 
 			if lineinfo.parameters: # 内容处理
 				self.handle_message_line(lineinfo.parameters)
 		else:
 			# 特殊情况重置 - 语音
-			if lineinfo.macro == 'VPLY':
+			if lineinfo.macro in end_inline_macro:
 				if self.temp_need_next > 0:
 					self.end_inline_macros('n')
 				elif self.need_next:

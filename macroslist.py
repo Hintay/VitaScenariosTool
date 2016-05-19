@@ -7,13 +7,15 @@
 ###########
 # Special
 ###########
-ignore_macro = ['SYNC', 'KMW2', 'HFUL']
-# 有括号
+ignore_macro = ['SYNC', 'KMW2', 'HFUL', 'PEND']
+# 最后可能有括号
 brackets_macro = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
-# 无逗号
-no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT']
+# 最前面无逗号
+no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
 
-ignore_parameters = ['002', '237', '238', '239']
+ignore_parameters = ['002', '113', '237', '238', '239']
+
+end_inline_macro = ['VPLY', 'TPG0']
 ###########
 
 macros = {
@@ -48,9 +50,12 @@ macros = {
 	#'HFTF':'@tf',
 	#'HFUL':{'2':''}, #_HFUL(2; [hfu]字[hfl] 须特殊处理
 	'HSMG':{'0':'@smudge'},
+	'HSMO':{'0':'@smudgeoff'},
+	'IRIW':'@showiriyacastle',
 	'KDSH':'@dash',
 	'KDSS':{'0':'@stopdash'},
 	'KDSW':'@wdash',
+	'KDLY':'@delay',
 	'KFCH':'@chgfg',
 	'KFG0':'@fg',
 	'KFMV':'@movefg', # @monocro
@@ -64,6 +69,8 @@ macros = {
 	'KFND':'@find',
 	'KSMV':'@splinemove',
 	'KIMG':'@image',
+	'KIME':'@imageex',
+	'KWRS':'@resetwait',
 	'MPLY':{'0':'@play', '2':'@xchgbgm'},
 	'MPAU':{'0':'@playresume', '1':'@playpause'},
 	'MSTP':{'0':'@playstop'},
@@ -72,13 +79,18 @@ macros = {
 	'NCLF':'@clfg',
 	'NCIN':{'0':'@cinesco'},
 	'NCTR':'@cltransparent',
+	'NCIO':{'0':'@cinesco_off'},
 	'NNOB':'@noise_back',
 	'NNOI':{'0':'@noise'},
 	'NNOS':{'0':'@stopnoise'}, # @noise_off
+	'NQUK':{'0':'@quake'},
 	'NQUS':'@stopquake',
 	'NQUL':'@lquake',
 	'NQLS':'@stoplquake',
+	'NLYO':'@layopt',
 	'NSHK':{'0':'@shock'},
+	'NSHW':'@wshock',
+	'NLYB':'@backlay',
 	'PAGE':'*page',
 	#'PEND':'', #_PEND(; 占位符？
 	#'QSET':{'0':'@call storage=QuizSystem.ks\n@iscript'},
@@ -89,15 +101,18 @@ macros = {
 	'SEPF':{'0':'@se', '2':'@seloop', '0tdeepdaytime':'@setdeepdaytime', '0thscene':'@sethscene'},
 	'SEFF':'@fadese',
 	'SNOW':{'0':'@snowuninit', '1':{'800':'@snowinit forevisible=false backvisible=true'}}, #@snowopt backvisible=false
+	'TCM0':'@cm',
 	'TDSP':{'0':'@displayedoff', '1':'@displayedon'},
 	'TPG0':'@pg',
 	'TWND':{'0':'@setdaytime', '1':'@setnighttime'},
+	'TWT0':'@wt',
 	'VPLY':'@say',
 	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '0acanskip=false':'@wait acanskip=false'},
 	'WTKY':'@lr',
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':''},
 	'MFNR':'@resetfont', # and @rf
+	'MVOL':'@fadebgm',
 	#'SYNC;:'@starttag',
 	#'WKST':'',
 	#'MVPL':{2:'@playmovie'},
@@ -296,9 +311,19 @@ pos = {
 layer = {
 	'-2':'&no',
 	'-1':'base',
+	'1':'base',
 	'255':'all'
 }
 
-special_macro = { 'target':target, 'page':page, 'rule':rule, 'pos':pos, 'layer':layer }
+true_false = {
+	'0':'false',
+	'1':'true'
+}
+
+noise_type = {
+	'1':'ltDodge'
+}
+
+special_macro = { 'target':target, 'page':page, 'rule':rule, 'pos':pos, 'layer':layer, 'nowait':true_false, 'type':noise_type }
 
 # @s(28) @large @s(16) @small
