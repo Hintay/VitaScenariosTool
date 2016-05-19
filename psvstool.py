@@ -315,8 +315,10 @@ class ScenarioMessage:
 
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
-		# 换行标记 ^
-		content = re.sub('(\^+)', self.get_beginning_r_macro, content)
+		# 开头的换行标记 ^
+		content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
+		# 剩下的换行标记 ^
+		content = re.sub('(\^+)(@n)?(.)?', self.get_remained_r_macro, content)
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
 			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
@@ -338,6 +340,16 @@ class ScenarioMessage:
 	def get_beginning_r_macro(cls, m):
 		br_count = len(m.group(1))
 		return '@r\n' * (br_count - 1) if br_count > 1 else ''
+
+	# For re.sub
+	@classmethod
+	def get_remained_r_macro(cls, m):
+		br_count = len(m.group(1))
+		if(not m.group(3) or m.group(3) == '@'):
+			text = '\n@r' * br_count + '\n'
+		else:
+			text = '[r]' + m.group(3)
+		return text
 
 # 处理剧本文件
 class ScenarioFile:
