@@ -11,6 +11,7 @@ import sys
 class ChangeVoiceName:
 	def __init__(self, folder):
 		self.folder = folder
+		self.hex_mod = os.path.exists(os.path.join('voice1', '03e5a.opus'))
 		self.loop_file_list()
 
 	def loop_file_list(self):
@@ -19,8 +20,11 @@ class ChangeVoiceName:
 				if f.endswith('opus'):
 					voice_number = self.match_number(f.split('.')[0])
 					try:
-						voice_number = int(voice_number)
-						if self.folder == 'voice2': voice_number += 20000
+						if self.hex_mod:
+							voice_number = int(voice_number, 16)
+						else:
+							voice_number = int(voice_number)
+							if self.folder == 'voice2': voice_number += 20000
 						hex_number = hex(voice_number)
 						hex_number = '{:0>5}'.format(hex_number[2:])
 						file_path = os.path.join(self.folder, f)
@@ -30,12 +34,16 @@ class ChangeVoiceName:
 						continue
 
 	def change_name(self, file_path, hex_number):
-		new_name = ''
-		if hex_number in voices_list.keys():
-			new_name += voices_list[hex_number] + '_'
-		#new_name += '{:0>6}'.format(int(hex_number, 16))  + '.opus' # decimal
-		new_name += hex_number + '.opus'
-
+		voice_name = voices_list.get(hex_number, '')
+		if voice_name:
+			if len(voice_name) == 4:
+				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
+			else:
+				#new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], hex_number[1:])
+				new_name = '%s_%s.opus' % (voice_name[2], hex_number)
+		else:
+			#new_name = hex_number[1:] + '.opus'
+			new_name = hex_number + '.opus'
 		print(new_name)
 		try:
 			os.rename(file_path, os.path.join(self.folder, new_name))
@@ -43,18 +51,21 @@ class ChangeVoiceName:
 			pass
 
 	def match_number(self, file_name):
-		name_split = file_name.split('-')
+		if self.hex_mod:
+			name_split = file_name.split('_')
+		else:
+			name_split = file_name.split('-')
+
 		if len(name_split) > 1:
 			voice_number = name_split[1]
-		elif name_split[0] in special_name[self.folder].keys():
-			voice_number = special_name[self.folder][name_split[0]]
+		elif file_name in special_name[self.folder].keys():
+			voice_number = special_name[self.folder][file_name]
 		else:
-			voice_number = name_split[0]
+			voice_number = file_name
 		return voice_number
 
 def change_filenames():
-	voice_folders = ['voice1', 'voice2']
-	for folder in voice_folders:
+	for folder in ['voice1', 'voice2']:
 		ChangeVoiceName(folder)
 
 if __name__ == '__main__':
