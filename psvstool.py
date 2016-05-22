@@ -5,6 +5,7 @@
 # The scenario files that extracted from PSV conversion utility
 
 from macroslist import *
+from voices_character import * # in extra directory
 import os
 import re
 import sys
@@ -108,10 +109,13 @@ class ScenarioLine:
 			if not len(parsplit) < 2:
 				if(parsplit[0] in parameters.keys()):
 					# 特殊对应参数
-					if parameters[parsplit[0]] in special_macro.keys():
-						if parsplit[1] in special_macro[parameters[parsplit[0]]].keys():
-							self.newparameters += ' %s=%s' % (parameters[parsplit[0]], special_macro[parameters[parsplit[0]]][parsplit[1]])
+					if parameters[parsplit[0]] in special_parameter.keys():
+						if parsplit[1] in special_parameter[parameters[parsplit[0]]].keys():
+							self.newparameters += ' %s=%s' % (parameters[parsplit[0]], special_parameter[parameters[parsplit[0]]][parsplit[1]])
 							continue
+					if self.macro == 'MPLY' and parsplit[0] == '005':
+						self.newparameters += ' storage=%s' % bgm.get(parsplit[1], parsplit[1])
+						continue
 					# /特殊对应参数
 					if self.macro == 'IRIW' and parsplit[0] == '075' and parsplit[1][:6] == '_PAGE(':
 						# 特殊修正
@@ -127,7 +131,10 @@ class ScenarioLine:
 				if self.macro == 'VPLY':
 					voice_split = parsplit[0].split(',')
 					try: # 格式检查
-						voice_storage = ' storage=%s_%05x' % (voice_split[0], int(voice_split[1], 16))
+						#voice_storage = ' storage=%s_%05x' % (voice_split[0], int(voice_split[1], 16))
+						voice_number = '%05x' % int(voice_split[1], 16)
+						voice_desc = voices_list.get(voice_number, '')
+						voice_storage = ' storage=%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
 					except ValueError: # '_____' 或其它
 						self.macro_comment_out = True
 						voice_storage = ' ' + parsplit[0]
@@ -360,16 +367,17 @@ class ScenarioMessage:
 
 # 处理剧本文件
 class ScenarioFile:
-	def __init__(self, filename):
+	def __init__(self, file_path):
 		self.lines = None
 		self.newlines = []
-		self.filename = filename
-		self.basename = filename.split('.')[0]
+		self.file_path = file_path
+		self.filename = os.path.basename(file_path)
+		self.basename = os.path.splitext(self.filename)[0]
 		self.open_file()
 		self.output_file()
 
 	def open_file(self):
-		fs = open(self.filename, 'rb')
+		fs = open(self.file_path, 'rb')
 		text = fs.read()
 		self.lines = text.split(bytes(';', encoding))
 		fs.close()
@@ -394,7 +402,7 @@ class ScenarioFile:
 			self.newlines.append(scenario_line.newline)
 
 	def output_file(self):
-		fs = codecs.open(self.basename+'.ks', 'w', 'u16') # 文本方式打开
+		fs = codecs.open(os.path.splitext(self.file_path)[0]+'.ks', 'w', 'u16') # 文本方式打开
 		new_file = ''
 		for line in self.newlines:
 			if not line == '':
@@ -420,11 +428,11 @@ def convert_verb(args):
 	if os.path.isfile(args.input):
 		ScenarioFile(args.input)
 	else: # 文件夹
-		os.chdir(args.input)
-		for file in os.listdir('.'):
-			if file.endswith('ini'):
-				print(file, file=sys.stderr)
-				ScenarioFile(file)
+		for root, dirs, files in os.walk(args.input):
+			for file in files:
+				if file.endswith('ini'):
+					print(file, file=sys.stderr)
+					ScenarioFile(os.path.join(root, file))
 
 if __name__ == '__main__':
 	parser, args = parse_args()

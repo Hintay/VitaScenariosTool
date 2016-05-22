@@ -5,7 +5,7 @@
 # This file is part of Voice File Names Renamer.
 
 voices_list = {
-	#  route with day, scene, chara, original voice number(Optional)
+	#  voice number: [route with day, scene, chara, original voice number (optional)]
 	'00002': ['KAREN', '02', 'SHI'],
 	'00003': ['KAREN', '02', 'SHI'],
 	'00004': ['KAREN', '02', 'SHI'],
