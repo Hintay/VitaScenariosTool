@@ -56,7 +56,7 @@ class ScenarioLine:
 		else:
 			# 没匹配到任何数据
 			if not self.line == b'':
-				print(self.line)
+				print(self.line, file=sys.stderr)
 			else: # 空行
 				return
 
@@ -317,7 +317,7 @@ class ScenarioMessage:
 		try:
 			content = content.decode(encoding)
 		except UnicodeDecodeError:
-			print(content)
+			print(content, file=sys.stderr)
 			sys.exit(20)
 
 		# 上标文字 Ruby
@@ -423,7 +423,7 @@ def convert_verb(args):
 		os.chdir(args.input)
 		for file in os.listdir('.'):
 			if file.endswith('ini'):
-				#print(file.encode('GBK', 'ignore').decode('GBK'))
+				print(file, file=sys.stderr)
 				ScenarioFile(file)
 
 if __name__ == '__main__':

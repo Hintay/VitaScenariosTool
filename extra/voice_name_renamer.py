@@ -39,12 +39,12 @@ class ChangeVoiceName:
 			if len(voice_name) == 4:
 				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
 			else:
-				#new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], hex_number[1:])
-				new_name = '%s_%s.opus' % (voice_name[2], hex_number)
+				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], hex_number)
+				#new_name = '%s_%s.opus' % (voice_name[2], hex_number)
 		else:
 			#new_name = hex_number[1:] + '.opus'
 			new_name = hex_number + '.opus'
-		print(new_name)
+		print(new_name, file=sys.stderr)
 		try:
 			os.rename(file_path, os.path.join(self.folder, new_name))
 		except WindowsError:
