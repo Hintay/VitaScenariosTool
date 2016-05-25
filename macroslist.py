@@ -7,15 +7,15 @@
 ###########
 # Special
 ###########
-ignore_macro = ['SYNC', 'KMW2', 'HFUL', 'PEND']
+ignore_macros = ['SYNC', 'KMW2', 'HFUL', 'PEND']
 # 最后可能有括号
-brackets_macro = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
+bracket_end_macros = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
 # 最前面无逗号
-no_comma_macro = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
+macros_without_comma = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
 
 ignore_parameters = ['002', '113', '237', '238', '239']
 
-end_inline_macro = ['VPLY', 'TPG0']
+close_inline_macro = ['VPLY', 'TPG0', 'BRET']
 ###########
 
 macros = {

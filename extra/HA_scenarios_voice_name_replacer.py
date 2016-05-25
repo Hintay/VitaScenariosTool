@@ -20,7 +20,7 @@ class ScenarioHandle:
 		self.base_name = os.path.splitext(self.file_name)[0]
 		name_split = self.base_name.split('-')
 		if(len(name_split) < 2): return
-		route_name = name_split[0]
+		#route_name = name_split[0]
 		self.new_lines = []
 
 		print(self.file_name, file=sys.stderr)

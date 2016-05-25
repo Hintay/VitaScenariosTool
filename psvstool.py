@@ -5,7 +5,7 @@
 # The scenario files that extracted from PSV conversion utility
 
 from macroslist import *
-from voices_character import * # in extra directory
+from extra.voices_character import * # in 'extra' directory
 import os
 import re
 import sys
@@ -23,62 +23,62 @@ class ScenarioLine:
 		self.macro_type = None
 		self.macro_subtype = None
 		self.macro_comment_out = False # 该行是否需要注释
+		self.macro_converted = None
 		self.parameters = ''
 		self.newparameters = ''
-		self.matchs = None
 		self.ismessage = False
 		self.messageid = None
+		self.is_page_start_message = False
 		self.match_line()
 
 	# 正则匹配提取数据
 	def match_line(self):
-		self.matchs = re.match(b'^_(.*?)\((.*)', self.line)
-		if(self.matchs): # 匹配至(宏)(宏参数)
-			self.macro = self.matchs.group(1).decode()
-			if(self.macro in ignore_macro):
-				return
+		if self.line == b'': return # 空行
+		matchs = re.match(b'^_(.*?)\((.*)', self.line)
+		if(matchs): # 匹配至(宏)(宏参数)
+			self.macro = matchs.group(1).decode()
+			if(self.macro in ignore_macros): return
 
 			# 判断文本
 			elif(self.macro[:3] == 'MSA'):
 				self.ismessage = True
-				self.parameters = self.matchs.group(2)
+				self.parameters = matchs.group(2)
 				return
 			elif(self.macro[:2] == 'ZM' or self.macro[:2] == 'ZZ'):
 				self.ismessage = True
-				self.parameters = self.matchs.group(2)
+				self.is_page_start_message = True
+				self.parameters = matchs.group(2)
 				self.messageid = self.macro[2:] # ID
 				return
 			# /判断文本
 
-			elif(self.macro in macros.keys()): # macro 列表中有匹配
-				if self.matchs.group(2): # 若有参数
-					self.parameters = self.matchs.group(2).split(bytes(',`', encoding)) # 分割后[0]为宏参数
-			#else: #找不到相应的macro
-		else:
-			# 没匹配到任何数据
-			if not self.line == b'':
-				print(self.line, file=sys.stderr)
-			else: # 空行
+			elif(macros.get(self.macro)): # macro 列表中有匹配
+				if matchs.group(2): # 若有参数
+					self.parameters = matchs.group(2).split(bytes(',`', encoding)) # 分割后[0]为宏参数
+			else: # 找不到相应macro时不处理
+				self.newline += ';%s' % self.line.decode(encoding)
 				return
+		else: # 未匹配到任何数据，一般不会出现
+			print(self.line, file=sys.stderr)
 
 		self.get_macro()
 
 	# 匹配宏类型
 	def match_macro_type(self):
-		if self.macro in brackets_macro and self.parameters[0][-1:] == b')':
+		if self.macro in bracket_end_macros and self.parameters[0][-1:] == b')':
 			self.parameters[0] = self.parameters[0][:-1]
-		if not self.parameters or self.ismessage or self.macro in no_comma_macro:
+		if not self.parameters or self.ismessage or self.macro in macros_without_comma:
 			return
 		parameter = self.parameters[0]
 		macro_types = parameter.decode(encoding).split(',')
-		self.macro_type = macro_types[0]
-		if len(macro_types) > 1: # 宏子类型
+		if len(macro_types) > 1: # 宏有子类型
 			if self.macro == 'BTXO': # 特殊处理，无额外参数的
 				self.parameters.append(b'003:'+macro_types[1].encode(encoding))
 			else:
 				self.macro_subtype = macro_types[1]
 		try: # 有对应macro则删除参数
-			macros[self.macro][self.macro_type]
+			macros[self.macro][macro_types[0]]
+			self.macro_type = macro_types[0]
 			del self.parameters[0] # 使用后移除参数
 		# 无对应macro，例：*page
 		except TypeError:
@@ -88,11 +88,11 @@ class ScenarioLine:
 
 	# 获取宏名字
 	def get_macro_name(self):
-		if( self.macro and self.macro in macros.keys()):
+		if(self.macro and macros.get(self.macro)):
 			#print(self.macro)
 			#print(self.macro_type)
-			if self.macro_type != None and self.macro_type != '':
-				if self.macro_subtype != None and self.macro_subtype != '':
+			if self.macro_type != None:
+				if self.macro_subtype != None:
 					return(macros[self.macro][self.macro_type][self.macro_subtype])
 				else:
 					return(macros[self.macro][self.macro_type])
@@ -107,61 +107,69 @@ class ScenarioLine:
 			parsplit = par.decode(encoding).split(':')
 			# 若分割出的参数小于2则没有参数可分割
 			if not len(parsplit) < 2:
-				if(parsplit[0] in parameters.keys()):
-					# 特殊对应参数
-					if parameters[parsplit[0]] in special_parameter.keys():
-						if parsplit[1] in special_parameter[parameters[parsplit[0]]].keys():
-							self.newparameters += ' %s=%s' % (parameters[parsplit[0]], special_parameter[parameters[parsplit[0]]][parsplit[1]])
-							continue
-					if self.macro == 'MPLY' and parsplit[0] == '005':
-						self.newparameters += ' storage=%s' % bgm.get(parsplit[1], parsplit[1])
+				par_key = parsplit[0]
+				par_value = parsplit[1]
+				if(parameters.get(par_key)):
+					par_key = parameters[par_key]
+
+					if par_key in special_parameter.keys():
+						par_value = special_parameter[par_key].get(par_value, par_value)
+
+					if self.macro == 'MPLY' and par_key == 'storage':
+						par_value = bgm.get(parsplit[1], parsplit[1])
+					elif self.macro_converted == '@rep' and par_key == 'storage':
+						par_key = 'bg'
+					elif self.macro == 'KMVE' and par_key == 'mag':
+						par_key = 'magnify'
+					elif self.macro == 'IRIW' and par_key == 'target' and parsplit[1][:6] == '_PAGE(':
+						par_value = '*page%s %s' % (parsplit[1][6], parsplit[1][7:])
+				else:
+					if par_key in ignore_parameters:
 						continue
-					# /特殊对应参数
-					if self.macro == 'IRIW' and parsplit[0] == '075' and parsplit[1][:6] == '_PAGE(':
-						# 特殊修正
-						self.newparameters += ' ' + parameters[parsplit[0]] + '=*page' + parsplit[1][6] + ' ' + parsplit[1][7:]
-					else:
-						self.newparameters += ' %s=%s' % (parameters[parsplit[0]], parsplit[1])
-				else: # 没有相应的参数
-					if parsplit[0] in ignore_parameters:
-						continue
-					self.newparameters += ' `%s=%s' % (parsplit[0], parsplit[1])
+					par_key = '`' + par_key
 			else:
+				par_key = None
+				par_value = parsplit[0]
 				# 语音标签
 				if self.macro == 'VPLY':
-					voice_split = parsplit[0].split(',')
+					voice_split = par_value.split(',')
 					try: # 格式检查
-						#voice_storage = ' storage=%s_%05x' % (voice_split[0], int(voice_split[1], 16))
+						#par_value = '%s_%05x' % (voice_split[0], int(voice_split[1], 16))
 						voice_number = '%05x' % int(voice_split[1], 16)
 						voice_desc = voices_list.get(voice_number, '')
-						voice_storage = ' storage=%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
+						par_key = 'storage'
+						par_value = '%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
 					except ValueError: # '_____' 或其它
 						self.macro_comment_out = True
-						voice_storage = ' ' + parsplit[0]
-						#voice_storage = ' storage=%s_%s' % (voice_split[0], voice_split[1])
-					self.newparameters += voice_storage
-				# 语音等待标签
-				elif self.macro == 'WTVT':
-					self.newparameters += ' time=%s' % parsplit[0]
+						#par_key = 'storage'
+						#par_value = '%s_%s' % (voice_split[0], voice_split[1])
+				elif self.macro == 'WTVT': # 语音等待标签
+					par_key = 'time'
 				elif self.macro == 'KDLY':
-					self.newparameters += ' speed=%s' % 'user' if parsplit[0] == '0' else parsplit[0]
+					par_key = 'speed'
+					if par_value == '0': par_value = 'user'
 				elif self.macro == 'FCAL':
-					self.newparameters += ' storage=%s' % (call[parsplit[0]] if parsplit[0] in call.keys() else parsplit[0])
-				elif parsplit[0] == 'extoff=0': # 修复错误
-					self.newparameters += ' textoff=0'
-				elif parsplit[0]:
-					if not self.macro == 'PAGE': self.newparameters += ' '
-					self.newparameters += parsplit[0]
+					par_key = 'storage'
+					par_value = call.get(par_value, par_value)
+				elif self.macro == 'KFCH' and par_value == 'extoff=0': # 修复错误
+					par_key = 'textoff'
+					par_value = '0'
+
+			if(par_key):
+				self.newparameters += ' %s=%s' % (par_key, par_value)
+			elif(par_value):
+				if not self.macro == 'PAGE': self.newparameters += ' '
+				self.newparameters += par_value
 
 	def get_macro(self):
 		if self.ismessage: # 文本内容直接退出
 			return
 		self.match_macro_type()
-		macro = self.get_macro_name()
-		if(macro): # 有对应的 macro 名
+		self.macro_converted = self.get_macro_name()
+		if(self.macro_converted): # 有对应的 macro 名
 			self.get_parameters() # 格式化参数
 			if(self.macro_comment_out): self.newline += ';'
-			self.newline += macro
+			self.newline += self.macro_converted
 			self.newline += self.newparameters
 		else:
 			self.newline += ';%s' % self.line.decode(encoding)
@@ -171,7 +179,7 @@ class ScenarioMessage:
 	def __init__(self):
 		self.need_next = False
 		self.temp_need_next = 0 # @n 临时下一行 搜索有几个@n就重复几次
-		self.WTVT_macro = False
+		self.fore_inline = False # 遇到 WTVT 标签时不按@n个数，连续包含行内宏
 		self.is_HFUL = False
 		self.need_handle_line = None
 		self.inline_macros = '' # 转换好的macros
@@ -185,7 +193,7 @@ class ScenarioMessage:
 	def add_line(self, lineinfo):
 		if lineinfo.ismessage: # 若为 Message
 			# 特殊情况重置
-			if self.temp_need_next > 0 or self.WTVT_macro == True:
+			if self.temp_need_next > 0 or self.fore_inline == True:
 				self.end_inline_macros('n')
 			# 若需要添加下一行但本行又为文本的话则封闭 Macro 再处理本行
 			if self.need_next:
@@ -197,10 +205,10 @@ class ScenarioMessage:
 				self.newlines += ';%d, %s\n' % (int(lineinfo.messageid, 16), lineinfo.messageid)
 
 			if lineinfo.parameters: # 内容处理
-				self.handle_message_line(lineinfo.parameters)
+				self.processing_message_line(lineinfo.parameters, lineinfo.is_page_start_message)
 		else:
-			# 特殊情况重置 - 语音
-			if lineinfo.macro in end_inline_macro:
+			# 特殊情况重置 - 语音等
+			if lineinfo.macro in close_inline_macro:
 				if self.temp_need_next > 0:
 					self.end_inline_macros('n')
 				elif self.need_next:
@@ -215,24 +223,24 @@ class ScenarioMessage:
 				self.inline_macros += '\n' + lineinfo.newline + '\n'
 
 			# 行内 @n 要包含的 Macro 块也在这里处理
-			if self.temp_need_next > 0 and self.WTVT_macro == False:
+			if self.temp_need_next > 0 and self.fore_inline == False:
 				# 语音等待符号
 				if lineinfo.macro == 'WTVT':
-					self.WTVT_macro = True
+					self.fore_inline = True
 					return
 				self.temp_need_next -= 1
 				if self.temp_need_next == 0:
 					self.end_inline_macros('n')
 
 	# 处理Message
-	def handle_message_line(self, content):
+	def processing_message_line(self, content, is_start_line):
 		# 先匹配特殊字符 注意：返回值为 Unicode 字符串
-		newlines = self.handle_special_character(content)
+		newlines = self.processing_special_character(content, is_start_line)
 
 		# [hfu] [hfl]
 		if(self.is_HFUL):
 			self.is_HFUL = False
-			newlines = self.handle_hful_macro(newlines)
+			newlines = self.processing_hful(newlines)
 
 		# 处理行内的 Marco： @n 或 @a(id)
 		# ！注意！ @a 与 @n 会出现在同一行！@a 比 @n 先出现
@@ -259,7 +267,7 @@ class ScenarioMessage:
 		self.newlines += newlines
 
 	@classmethod
-	def handle_hful_macro(cls, content):
+	def processing_hful(cls, content):
 		new_content = ''
 		for index, value in enumerate(content):
 			if value == '。': continue
@@ -279,23 +287,23 @@ class ScenarioMessage:
 			self.newlines += re.sub('(@a\(\d+\))', self.inline_macros, self.need_handle_line)
 		else:
 			self.temp_need_next = 0
-			self.WTVT_macro = False
+			self.fore_inline = False
 			# 正则替换行内的@n
 			self.newlines += re.sub('(@n)+', self.inline_macros, self.need_handle_line)
 		# 重置部分参数
 		self.need_handle_line = None
 		self.inline_macros = ''
 
-	# 处理特殊字符 (基本以 \xec 开头)
+	# 处理特殊字符 (以 \xec 开头)
 	# \xec\x4a = Line Macro Start
 	# \xec\x46 = Line Macro Padding Character
 	# \xec\x48 = Line Macro End
-	# \xec\x5a = [argz]
-	# \xec\x5c = [nusz]
-	# \xec\x59 = [ansz]
-	# \xec\x5b = [ingz]
 	# \xec\x45 = [heart]
-	# \xec\x5d = Append Macro End Tag 行内macro结束标记
+	# \xec\x59 = [ansz]
+	# \xec\x5a = [argz]
+	# \xec\x5b = [ingz]
+	# \xec\x5c = [nusz]
+	# \xec\x5d = Inline Macros End Tag for @a
 	# \xec\x4b = Block Macro Start
 	# \xec\x47 = Block Macro Padding Character
 	# \xec\x49 = Block Macro End
@@ -303,7 +311,7 @@ class ScenarioMessage:
 	# \xec\x52 = Wacky Macro Length 6
 	# \xec\x53 = Wacky Macro Length 9
 	# \xec\x54 = Wacky Macro Length 12
-	def handle_special_character(self, content):
+	def processing_special_character(self, content, is_start_line):
 		content = content.replace(b'\xec\x5d', b'') # 直接去掉结束标记
 		content = content.replace(b'\xec\x5a', b'[argz]')
 		content = content.replace(b'\xec\x5c', b'[nusz]')
@@ -330,7 +338,10 @@ class ScenarioMessage:
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
 		# 开头的换行标记 ^
-		content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
+		if is_start_line:
+			content = re.sub('^(\^+)', lambda m:'@r\n' * (len(m.group(1))), content)
+		else:
+			content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
 		# 剩下的换行标记 ^
 		content = re.sub('(\^+)(@n)?(.)?', self.get_remained_r_macro, content)
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
@@ -362,7 +373,7 @@ class ScenarioMessage:
 		if(not m.group(3) or m.group(3) == '@'):
 			text = '\n@r' * br_count + '\n'
 		else:
-			text = '[r]' + m.group(3)
+			text = '[br]' + m.group(3)
 		return text
 
 # 处理剧本文件
@@ -379,11 +390,11 @@ class ScenarioFile:
 	def open_file(self):
 		fs = open(self.file_path, 'rb')
 		text = fs.read()
-		self.lines = text.split(bytes(';', encoding))
+		self.lines = text.split(b';')
 		fs.close()
-		self.handle_file()
+		self.processing_file()
 
-	def handle_file(self):
+	def processing_file(self):
 		message_handle = ScenarioMessage()
 		for line in self.lines:
 			scenario_line = ScenarioLine(line) # 处理行
