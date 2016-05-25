@@ -28,7 +28,6 @@ class ScenarioLine:
 		self.newparameters = ''
 		self.ismessage = False
 		self.messageid = None
-		self.is_page_start_message = False
 		self.match_line()
 
 	# 正则匹配提取数据
@@ -46,7 +45,6 @@ class ScenarioLine:
 				return
 			elif(self.macro[:2] == 'ZM' or self.macro[:2] == 'ZZ'):
 				self.ismessage = True
-				self.is_page_start_message = True
 				self.parameters = matchs.group(2)
 				self.messageid = self.macro[2:] # ID
 				return
@@ -156,6 +154,7 @@ class ScenarioLine:
 					par_value = '0'
 
 			if(par_key):
+				if(par_value == ''): par_value = '""'
 				self.newparameters += ' %s=%s' % (par_key, par_value)
 			elif(par_value):
 				if not self.macro == 'PAGE': self.newparameters += ' '
@@ -203,9 +202,12 @@ class ScenarioMessage:
 			if lineinfo.messageid: # 有 ID 则加上 ID 注释
 				if self.newlines != '': self.newlines += '\n'
 				self.newlines += ';%d, %s\n' % (int(lineinfo.messageid, 16), lineinfo.messageid)
+				self.is_start_line = True
+			else:
+				self.is_start_line = False
 
 			if lineinfo.parameters: # 内容处理
-				self.processing_message_line(lineinfo.parameters, lineinfo.is_page_start_message)
+				self.processing_message_line(lineinfo.parameters)
 		else:
 			# 特殊情况重置 - 语音等
 			if lineinfo.macro in close_inline_macro:
@@ -233,9 +235,9 @@ class ScenarioMessage:
 					self.end_inline_macros('n')
 
 	# 处理Message
-	def processing_message_line(self, content, is_start_line):
+	def processing_message_line(self, content):
 		# 先匹配特殊字符 注意：返回值为 Unicode 字符串
-		newlines = self.processing_special_character(content, is_start_line)
+		newlines = self.processing_special_character(content)
 
 		# [hfu] [hfl]
 		if(self.is_HFUL):
@@ -311,7 +313,7 @@ class ScenarioMessage:
 	# \xec\x52 = Wacky Macro Length 6
 	# \xec\x53 = Wacky Macro Length 9
 	# \xec\x54 = Wacky Macro Length 12
-	def processing_special_character(self, content, is_start_line):
+	def processing_special_character(self, content):
 		content = content.replace(b'\xec\x5d', b'') # 直接去掉结束标记
 		content = content.replace(b'\xec\x5a', b'[argz]')
 		content = content.replace(b'\xec\x5c', b'[nusz]')
@@ -338,7 +340,7 @@ class ScenarioMessage:
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
 		# 开头的换行标记 ^
-		if is_start_line:
+		if self.is_start_line:
 			content = re.sub('^(\^+)', lambda m:'@r\n' * (len(m.group(1))), content)
 		else:
 			content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
