@@ -75,9 +75,9 @@ class ScenarioLine:
 			else:
 				self.macro_subtype = macro_types[1]
 		try: # 有对应macro则删除参数
-			macros[self.macro][macro_types[0]]
-			self.macro_type = macro_types[0]
-			del self.parameters[0] # 使用后移除参数
+			if(macros[self.macro][macro_types[0]] != None):
+				self.macro_type = macro_types[0]
+				del self.parameters[0] # 使用后移除参数
 		# 无对应macro，例：*page
 		except TypeError:
 			pass
@@ -178,7 +178,7 @@ class ScenarioMessage:
 	def __init__(self):
 		self.need_next = False
 		self.temp_need_next = 0 # @n 临时下一行 搜索有几个@n就重复几次
-		self.fore_inline = False # 遇到 WTVT 标签时不按@n个数，连续包含行内宏
+		self.fore_need_next = False # 遇到 WTVT 等标签时不按@n个数，连续包含行内宏
 		self.is_HFUL = False
 		self.need_handle_line = None
 		self.inline_macros = '' # 转换好的macros
@@ -192,7 +192,7 @@ class ScenarioMessage:
 	def add_line(self, lineinfo):
 		if lineinfo.ismessage: # 若为 Message
 			# 特殊情况重置
-			if self.temp_need_next > 0 or self.fore_inline == True:
+			if self.temp_need_next > 0 or self.fore_need_next == True:
 				self.end_inline_macros('n')
 			# 若需要添加下一行但本行又为文本的话则封闭 Macro 再处理本行
 			if self.need_next:
@@ -225,10 +225,10 @@ class ScenarioMessage:
 				self.inline_macros += '\n' + lineinfo.newline + '\n'
 
 			# 行内 @n 要包含的 Macro 块也在这里处理
-			if self.temp_need_next > 0 and self.fore_inline == False:
+			if self.temp_need_next > 0 and self.fore_need_next == False:
 				# 语音等待符号
 				if lineinfo.macro == 'WTVT':
-					self.fore_inline = True
+					self.fore_need_next = True
 					return
 				self.temp_need_next -= 1
 				if self.temp_need_next == 0:
@@ -261,7 +261,8 @@ class ScenarioMessage:
 		if(n_count):
 			self.need_handle_line = newlines
 			self.temp_need_next = n_count
-		# 有需要处理的行代表暂时不能直接返回
+			return
+		# 有需要处理的行代表暂时不能直接添加该行
 		if self.need_handle_line:
 			return
 		# /处理行内的 Marco
@@ -289,7 +290,7 @@ class ScenarioMessage:
 			self.newlines += re.sub('(@a\(\d+\))', self.inline_macros, self.need_handle_line)
 		else:
 			self.temp_need_next = 0
-			self.fore_inline = False
+			self.fore_need_next = False
 			# 正则替换行内的@n
 			self.newlines += re.sub('(@n)+', self.inline_macros, self.need_handle_line)
 		# 重置部分参数
@@ -407,7 +408,7 @@ class ScenarioFile:
 			# 剧本特殊处理
 			if(message_handle.need_next or message_handle.temp_need_next > 0 or scenario_line.ismessage):
 				message_handle.add_line(scenario_line) # need_next 等变量可能会变化所以需要重新判断
-				if(message_handle.need_next == False and message_handle.temp_need_next == 0):
+				if(message_handle.need_handle_line == None):
 					self.newlines.append(message_handle.newlines)
 					message_handle.reset_variables()
 				continue
