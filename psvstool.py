@@ -39,16 +39,24 @@ class ScenarioLine:
 			if(self.macro in ignore_macros): return
 
 			# 判断文本
+			# MSA2 上行只可能有 WTKY；MSAD上方可能有其他代码，并等运行完才会显示。（应该适用于文本快进）
 			elif(self.macro[:3] == 'MSA'):
 				self.ismessage = True
 				self.parameters = matchs.group(2)
 				return
-			elif(self.macro[:2] == 'ZM' or self.macro[:2] == 'ZZ'):
+			elif(self.macro[:2] == 'ZM' or self.macro[:2] == 'ZZ'): # ZZ为剧本开头
 				self.ismessage = True
 				self.parameters = matchs.group(2)
 				self.messageid = self.macro[2:] # ID
 				return
 			# /判断文本
+
+			elif(self.macro == 'EVT0'):
+				self.newline += '@call storage=staffroll.ks'
+				return
+			elif(self.macro == 'HFTF'):
+				self.get_hftf(matchs.group(2))
+				return
 
 			elif(macros.get(self.macro)): # macro 列表中有匹配
 				if matchs.group(2): # 若有参数
@@ -60,6 +68,15 @@ class ScenarioLine:
 			print(self.line, file=sys.stderr)
 
 		self.get_macro()
+
+	def get_hftf(self, parameters): 
+		par_dict = {}
+		par_keys = {'026': 'eval', '235':'result'}
+		for parameter in parameters.decode(encoding).split(',`'):
+			if(parameter == '0'): continue
+			parsplit = parameter.split(':')
+			par_dict[par_keys[parsplit[0]]] = parsplit[1]
+		self.newline += '@eval exp="tf[\'%s\']=%s"' % (par_dict['eval'], true_false[par_dict['result']])
 
 	# 匹配宏类型
 	def match_macro_type(self):
@@ -128,8 +145,14 @@ class ScenarioLine:
 			else:
 				par_key = None
 				par_value = parsplit[0]
-				# 语音标签
-				if self.macro == 'VPLY':
+				if self.macro == 'PAGE': # 页面标签
+					self.macro_converted += parsplit[0]
+					return
+				elif self.macro == 'NEVL': # @eval
+					eval = par_value.split('=')
+					par_key = eval[0]
+					par_value = '"%s"' % eval[1]
+				elif self.macro == 'VPLY': # 语音标签
 					voice_split = par_value.split(',')
 					try: # 格式检查
 						#par_value = '%s_%05x' % (voice_split[0], int(voice_split[1], 16))
@@ -157,8 +180,7 @@ class ScenarioLine:
 				if(par_value == ''): par_value = '""'
 				self.newparameters += ' %s=%s' % (par_key, par_value)
 			elif(par_value):
-				if not self.macro == 'PAGE': self.newparameters += ' '
-				self.newparameters += par_value
+				self.newparameters += ' ' + par_value
 
 	def get_macro(self):
 		if self.ismessage: # 文本内容直接退出

@@ -51,6 +51,7 @@ macros = {
 	#'HFUL':{'2':''}, #_HFUL(2; [hfu]字[hfl] 须特殊处理
 	'HSMG':{'0':'@smudge'},
 	'HSMO':{'0':'@smudgeoff'},
+	'IRIY':'@history enabled=false\n@shortcutkey enabled=false\n@cancelskip',
 	'IRIW':'@showiriyacastle',
 	'KDSH':'@dash',
 	'KDSS':{'0':'@stopdash'},
@@ -106,22 +107,23 @@ macros = {
 	'TPG0':'@pg',
 	'TWND':{'0':'@setdaytime', '1':'@setnighttime'},
 	'TWT0':'@wt',
+	#'TRPY':,
 	'VPLY':'@say',
 	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '0acanskip=false':'@wait acanskip=false'},
 	'WTKY':'@lr',
-	'WNDS':{'0':'@window_start', '1':'@window_end', '2':''},
+	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
-	#'SYNC;:'@starttag',
+	#'SYNC;:'',
 	#'WKST':'',
-	#'MVPL':{2:'@playmovie'},
+	#'MVPL':'@playmovie',
 	#'MSAD':'', #文本框
 }
 # @smudge @blur @smudgeoff @bluroff @slideopencombo @slideclosecombo @pasttime 被_CFAD所替代
 # @shortcutkey @history 被去除
 
-# _WKST(G054,1; @night_start _WKST(G011,1; 真・冒頭-16.ini
+# _WKST(G054,1;  _WKST(G011,1; 变量+1
 # _QJMP(_D990,quiz14_correct,quiz14_incorrect; @quiz success=*page11 failed=*page12
 # _HFTF(0,`026:クイズタイガー編クリア,`235:1; @eval exp="tf['クイズタイガー編クリア']=true"
 
