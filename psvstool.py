@@ -360,6 +360,16 @@ class ScenarioMessage:
 			print(content, file=sys.stderr)
 			sys.exit(20)
 
+		# @s(28) [large] @s(16) [small]
+		if(content.find('@s(') >= 0):
+			matchs = re.match(r'^(?:\^)*@s\((\d{2})\)(?:@n)?$', content)
+			if(matchs):
+				content = content.replace('@s(28)@n', '@large')
+				content = content.replace('@s(16)@n', '@small')
+			else:
+				content = content.replace('@s(28)', '[large]')
+				content = content.replace('@s(16)', '[small]')
+
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
 		# 开头的换行标记 ^
@@ -372,9 +382,6 @@ class ScenarioMessage:
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
 			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
-		# @s(28) [large] @s(16) [small]
-		content = '@large' if(content[:6] == '@s(28)') else content.replace('@s(28)', '[large]')
-		content = '@small' if(content[:6] == '@s(16)') else content.replace('@s(16)', '[small]')
 		return content
 
 	# For re.sub
@@ -431,7 +438,9 @@ class ScenarioFile:
 			if(message_handle.need_next or message_handle.temp_need_next > 0 or scenario_line.ismessage):
 				message_handle.add_line(scenario_line) # need_next 等变量可能会变化所以需要重新判断
 				if(message_handle.need_handle_line == None):
-					self.newlines.append(message_handle.newlines)
+					newlines = message_handle.newlines.replace('〜', '～') # ~ 号需要特殊处理
+					newlines = newlines.replace('[resetfont]', '[rf]')  # 替换短链接
+					self.newlines.append(newlines)
 					message_handle.reset_variables()
 				continue
 			# /剧本特殊处理
@@ -442,8 +451,6 @@ class ScenarioFile:
 		new_file = ''
 		for line in self.newlines:
 			if not line == '':
-				# ~ 号需要特殊处理
-				line = line.replace('〜', '～')
 				new_file += line + '\n'
 		# 去除多余的换行
 		new_file = new_file.replace('\n\n', '\n')

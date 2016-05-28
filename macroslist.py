@@ -39,7 +39,7 @@ macros = {
 	'HFAN':'@hfangry',
 	'HFBB':'@hfburstblood',
 	'HFCN':'@hfchance',
-	'HFFA':'hfface',
+	'HFFA':'@hfface',
 	'HFFC':'@hffacechg',
 	'HFFG':'@hffeelgood',
 	'HFSG':'@hfsigh',
@@ -115,6 +115,7 @@ macros = {
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
+	#'MTLK':'@say'
 	#'SYNC;:'',
 	#'WKST':'',
 	#'MVPL':'@playmovie',
