@@ -94,9 +94,9 @@ macros = {
 	'PAGE':'*page',
 	#'PEND':'', #_PEND(; 占位符？
 	#'QSET':{'0':'@call storage=QuizSystem.ks\n@iscript'},
-	'QADE':'@endscript',
-	'QADS':'.quiz	= %[%s]',
-	'QADD':'quiz:[%s]',
+	#'QADE':'@endscript',
+	#'QADS':'.quiz	= %[%s]',
+	#'QADD':'quiz:[%s]',
 	'SESF':'@sestop',
 	'SEPF':{'0':'@se', '2':'@seloop', '0tdeepdaytime':'@setdeepdaytime', '0thscene':'@sethscene'},
 	'SEFF':'@fadese',
