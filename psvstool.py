@@ -172,6 +172,12 @@ class ScenarioLine:
 				elif self.macro == 'FCAL':
 					par_key = 'storage'
 					par_value = call.get(par_value, par_value)
+				elif self.macro == 'MTLK':
+					say_key = par_value.split(',')[1]
+					say_value = say_name.get(say_key, say_key)
+					if(say_value):
+						self.newparameters += ' name=%s' % say_value
+					return
 				elif self.macro == 'KFCH' and par_value == 'extoff=0': # 修复错误
 					par_key = 'textoff'
 					par_value = '0'

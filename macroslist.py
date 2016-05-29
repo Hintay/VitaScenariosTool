@@ -115,7 +115,7 @@ macros = {
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
-	#'MTLK':'@say'
+	'MTLK':'@say'
 	#'SYNC;:'',
 	#'WKST':'',
 	#'MVPL':'@playmovie',
@@ -458,6 +458,12 @@ true_false = {
 
 noise_type = {
 	'1':'ltDodge'
+}
+
+say_name = {
+	'RIN': '凛',
+	'SHI': '士郎',
+	'BZK': '二人',
 }
 
 special_parameter = { 'target':target, 'page':page, 'rule':rule, 'pos':pos, 'layer':layer, 'nowait':true_false, 'type':noise_type }
