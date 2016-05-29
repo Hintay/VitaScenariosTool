@@ -69,7 +69,7 @@ class ScenarioLine:
 
 		self.get_macro()
 
-	def get_hftf(self, parameters): 
+	def get_hftf(self, parameters):
 		par_dict = {}
 		par_keys = {'026': 'eval', '235':'result'}
 		for parameter in parameters.decode(encoding).split(',`'):
@@ -149,9 +149,9 @@ class ScenarioLine:
 					self.macro_converted += parsplit[0]
 					return
 				elif self.macro == 'NEVL': # @eval
-					eval = par_value.split('=')
-					par_key = eval[0]
-					par_value = '"%s"' % eval[1]
+					eval_value = par_value.split('=')
+					par_key = eval_value[0]
+					par_value = '"%s"' % eval_value[1]
 				elif self.macro == 'VPLY': # 语音标签
 					voice_split = par_value.split(',')
 					try: # 格式检查

@@ -64,7 +64,7 @@ class TrophyFile:
 	def get_file_name(self, index):
 		print("\nGetting filename...", end="")
 		self.file_stream.seek(0x40 + index * 0x40)
-		file_name = self.read_0_string(self.file_stream.read(16))
+		file_name = read_0_string(self.file_stream.read(16))
 		print(file_name)
 		return file_name
 
@@ -91,11 +91,11 @@ class TrophyFile:
 		fs.close()
 		print("DONE!")
 
-	def read_0_string(self, bstr):
-		try:
-			return bstr[0:bstr.index(b'\x00')].decode()
-		except ValueError:
-			return bstr.decode()
+def read_0_string(bstr):
+	try:
+		return bstr[0:bstr.index(b'\x00')].decode()
+	except ValueError:
+		return bstr.decode()
 
 def parse_args():
 	parser = argparse.ArgumentParser(description=__doc__)
