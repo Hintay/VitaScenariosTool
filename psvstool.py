@@ -207,6 +207,7 @@ class ScenarioMessage:
 		self.need_next = False
 		self.temp_need_next = 0 # @n 临时下一行 搜索有几个@n就重复几次
 		self.fore_need_next = False # 遇到 WTVT 等标签时不按@n个数，连续包含行内宏
+		self.already_reline = False
 		self.is_HFUL = False
 		self.need_handle_line = None
 		self.inline_macros = '' # 转换好的macros
@@ -246,6 +247,9 @@ class ScenarioMessage:
 				self.newlines += '\n'+lineinfo.newline
 				return
 
+			if(lineinfo.macro == 'WTKY'): # 用于换行判断
+				self.already_reline = True
+
 			# 将 Macro 的 @ 替换为 [
 			if lineinfo.newline[:1] == '@':
 				self.inline_macros += '[' + lineinfo.newline[1:] +']'
@@ -266,6 +270,7 @@ class ScenarioMessage:
 	def processing_message_line(self, content):
 		# 先匹配特殊字符 注意：返回值为 Unicode 字符串
 		newlines = self.processing_special_character(content)
+		self.already_reline = False
 
 		# [hfu] [hfl]
 		if(self.is_HFUL):
@@ -378,13 +383,18 @@ class ScenarioMessage:
 
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
+
+		# 特殊换行标记
+		if(self.is_start_line == False and content[:2] == '^　' and self.newlines != '' and self.already_reline == False):
+			content = re.sub('^(\^+)', lambda m:'[br]' * (len(m.group(1))) + '\n', content)
 		# 开头的换行标记 ^
 		if self.is_start_line:
 			content = re.sub('^(\^+)', lambda m:'@r\n' * (len(m.group(1))), content)
 		else:
 			content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
 		# 剩下的换行标记 ^
-		content = re.sub('(\^+)(@n)?(.)?', self.get_remained_r_macro, content)
+		content = re.sub('(\^+)(@n)?(.{0,2})', self.get_remained_r_macro, content)
+
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
 			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
@@ -408,10 +418,13 @@ class ScenarioMessage:
 	@classmethod
 	def get_remained_r_macro(cls, m):
 		br_count = len(m.group(1))
-		if(not m.group(3) or m.group(3) == '@'):
+		if(not m.group(3) or m.group(3)[0] == '@'):
 			text = '\n@r' * br_count + '\n'
+		elif(m.group(3)[0] == '　'):
+			text = '[br]' * br_count + '\n'
 		else:
-			text = '[br]' + m.group(3)
+			text = '[br]'
+		if(m.group(3) != '@n'): text += m.group(3)
 		return text
 
 # 处理剧本文件
