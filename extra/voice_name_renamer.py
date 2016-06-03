@@ -8,32 +8,32 @@ from voices_character import *
 import os
 import sys
 
+hex_files = {'voice1':'03e5a.opus', 'voice2':'04e21.opus'}
+
 class ChangeVoiceName:
 	def __init__(self, folder):
 		self.folder = folder
-		self.hex_mod = os.path.exists(os.path.join('voice1', '03e5a.opus'))
+		self.hex_mod = os.path.exists(os.path.join(self.folder, hex_files[self.folder]))
 		self.loop_file_list()
 
 	def loop_file_list(self):
 		for root, dirs, files in os.walk(self.folder):
 			for f in files:
 				if f.endswith('opus'):
-					voice_number = self.match_number(f.split('.')[0])
+					voice_number = self.match_number(os.path.splitext(f)[0])
 					try:
 						if self.hex_mod:
+							if(len(voice_number) == 4): continue # 四位数则跳过（0000、0010这种）
 							voice_number = int(voice_number, 16)
 						else:
 							voice_number = int(voice_number)
 							if self.folder == 'voice2': voice_number += 20000
-						hex_number = hex(voice_number)
-						hex_number = '{:0>5}'.format(hex_number[2:])
-						file_path = os.path.join(self.folder, f)
-
-						self.change_name(file_path, hex_number)
+						hex_number = '%05x' % voice_number
+						self.change_name(root, f, hex_number)
 					except ValueError: # 字母等
 						continue
 
-	def change_name(self, file_path, hex_number):
+	def change_name(self, root_path, file_name, hex_number):
 		voice_name = voices_list.get(hex_number, '')
 		if voice_name:
 			if len(voice_name) == 4:
@@ -42,13 +42,14 @@ class ChangeVoiceName:
 				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], hex_number)
 				#new_name = '%s_%s.opus' % (voice_name[2], hex_number)
 		else:
-			#new_name = hex_number[1:] + '.opus'
 			new_name = hex_number + '.opus'
-		print(new_name, file=sys.stderr)
+
+		if(file_name == new_name): return
 		try:
-			os.rename(file_path, os.path.join(self.folder, new_name))
+			print('>> Rename %s to %s' % (file_name, new_name), file=sys.stderr)
+			os.rename(os.path.join(root_path, file_name), os.path.join(root_path, new_name))
 		except WindowsError:
-			pass
+			print('   Rename FAILED!', file=sys.stderr)
 
 	def match_number(self, file_name):
 		if self.hex_mod:
@@ -57,16 +58,15 @@ class ChangeVoiceName:
 			name_split = file_name.split('-')
 
 		if len(name_split) > 1:
-			voice_number = name_split[1]
-		elif file_name in special_name[self.folder].keys():
-			voice_number = special_name[self.folder][file_name]
+			voice_number = name_split[-1]
 		else:
-			voice_number = file_name
+			voice_number = special_name[self.folder].get(file_name, file_name)
 		return voice_number
 
 def change_filenames():
 	for folder in ['voice1', 'voice2']:
 		ChangeVoiceName(folder)
+	print("DONE!")
 
 if __name__ == '__main__':
 	if os.path.exists('voice1') and os.path.exists('voice2'):
