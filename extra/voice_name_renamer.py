@@ -37,7 +37,10 @@ class ChangeVoiceName:
 		voice_name = voices_list.get(hex_number, '')
 		if voice_name:
 			if len(voice_name) == 4:
-				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
+				if(voice_name[0] == ''):
+					new_name = '%s_%s.opus' % (voice_name[2], voice_name[3])
+				else:
+					new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
 			else:
 				new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], hex_number)
 				#new_name = '%s_%s.opus' % (voice_name[2], hex_number)
