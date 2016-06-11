@@ -471,8 +471,8 @@ class ScenarioFile:
 		for line in self.newlines:
 			if not line == '':
 				new_file += line + '\n'
-		# 去除多余的换行
-		new_file = new_file.replace('\n\n', '\n')
+		new_file = new_file.replace('\n\n', '\n') # 去除多余的换行
+		new_file = new_file.replace('[lr]\n~\n', '[l]\n') # 额外处理[l]
 		fs.write(new_file)
 		fs.close()
 
