@@ -203,58 +203,57 @@ class ScenarioLine:
 
 # 处理剧本Message
 class ScenarioMessage:
-	def __init__(self):
+	def __init__(self, scenario_handler):
+		self.scenario_handler = scenario_handler
 		self.need_next = False
 		self.temp_need_next = 0 # @n 临时下一行 搜索有几个@n就重复几次
 		self.fore_need_next = False # 遇到 WTVT 等标签时不按@n个数，连续包含行内宏
-		self.already_reline = False
 		self.is_HFUL = False
-		self.need_handle_line = None
+		self.processing_line = None
 		self.inline_macros = '' # 转换好的macros
-		self.newlines = ''
-
-	# 重置所有参数
-	def reset_variables(self):
-		self.__init__()
+		self.new_line = '' # 处理好的行
 
 	# 添加一行
 	def add_line(self, lineinfo):
 		if lineinfo.ismessage: # 若为 Message
-			# 特殊情况重置
-			if self.temp_need_next > 0 or self.fore_need_next == True:
-				self.end_inline_macros('n')
-			# 若需要添加下一行但本行又为文本的话则封闭 Macro 再处理本行
-			if self.need_next:
-				self.end_inline_macros('a')
-			# /特殊情况重置
-
 			if lineinfo.messageid: # 有 ID 则加上 ID 注释
-				if self.newlines != '': self.newlines += '\n'
-				self.newlines += ';%d, %s\n' % (int(lineinfo.messageid, 16), lineinfo.messageid)
+				if self.new_line:
+					self.append_message_line()
+				self.scenario_handler.newlines.append(';%d, %s' % (int(lineinfo.messageid, 16), lineinfo.messageid))
 				self.is_start_line = True
 			else:
 				self.is_start_line = False
 
-			if lineinfo.parameters: # 内容处理
-				self.processing_message_line(lineinfo.parameters)
+			# 若需要添加下一行但本行又为文本的话则封闭 Macro 再处理本行
+			if self.temp_need_next > 0 or self.fore_need_next == True:
+				self.end_inline_macros('n')
+			if self.need_next:
+				self.end_inline_macros('a')
+
+			# 需要该行的开头 ^ 来判断要不要换行
+			content = self.check_start_reline(lineinfo.parameters)
+
+			if content: # 内容处理
+				if content == b'~@n': return # 特殊
+				self.processing_message_line(content)
 		else:
-			# 特殊情况重置 - 语音等
-			if lineinfo.macro in close_inline_macro:
+			if not lineinfo.newline:
+				return
+			# 特殊情况封闭行内标签 - 语音等
+			elif lineinfo.macro in close_inline_macro:
 				if self.temp_need_next > 0:
 					self.end_inline_macros('n')
 				elif self.need_next:
 					self.end_inline_macros('a')
-				self.newlines += '\n'+lineinfo.newline
+				self.append_message_line()
+				self.scenario_handler.newlines.append(lineinfo.newline)
 				return
-
-			if(lineinfo.macro == 'WTKY'): # 用于换行判断
-				self.already_reline = True
 
 			# 将 Macro 的 @ 替换为 [
 			if lineinfo.newline[:1] == '@':
 				self.inline_macros += '[' + lineinfo.newline[1:] +']'
-			elif not lineinfo.newline == '':
-				self.inline_macros += '\n' + lineinfo.newline + '\n'
+			#else:
+			#	print(lineinfo.newline)
 
 			# 行内 @n 要包含的 Macro 块也在这里处理
 			if self.temp_need_next > 0 and self.fore_need_next == False:
@@ -266,16 +265,33 @@ class ScenarioMessage:
 				if self.temp_need_next == 0:
 					self.end_inline_macros('n')
 
+	def check_start_reline(self, content):
+		if not self.is_start_line and content and content[:1] == b'^':
+			if self.new_line:
+				l_index = self.new_line.rfind('[l]')
+				if l_index != -1:
+					self.new_line = self.new_line[:l_index] + '[lr]' + self.new_line[l_index+3:]
+					self.append_message_line()
+				else:
+					self.new_line += '[br]'
+					if content != b'^@n':
+						self.append_message_line()
+			else:
+				l_index = self.scenario_handler.newlines[self.scenario_handler.last_message_index].rfind('[l]')
+				if l_index != -1 and self.scenario_handler.last_message_index != -1:
+					self.scenario_handler.newlines[self.scenario_handler.last_message_index] = self.scenario_handler.newlines[self.scenario_handler.last_message_index][:l_index] + '[lr]' + self.scenario_handler.newlines[self.scenario_handler.last_message_index][l_index+3:]
+				else:
+					self.scenario_handler.newlines[self.scenario_handler.last_message_index] += '[br]'
+			content = content[1:]
+		return content
+
 	# 处理Message
 	def processing_message_line(self, content):
 		# 先匹配特殊字符 注意：返回值为 Unicode 字符串
-		newlines = self.processing_special_character(content)
-		self.already_reline = False
+		content = self.processing_special_character(content)
 
 		# [hfu] [hfl]
-		if(self.is_HFUL):
-			self.is_HFUL = False
-			newlines = self.processing_hful(newlines)
+		content = self.processing_hful(content)
 
 		# 处理行内的 Marco： @n 或 @a(id)
 		# ！注意！ @a 与 @n 会出现在同一行！@a 比 @n 先出现
@@ -283,27 +299,30 @@ class ScenarioMessage:
 		#
 		# @a(ID) ID与 _SYNC( 中 ID 相同
 		# 不用管有 @a 行中的 @n
-		if(newlines.find('@a') >= 0):
-			if newlines[-2:] == '@n': newlines = newlines[:-2]
+		if(content.find('@a') >= 0):
+			if content[-2:] == '@n': content = content[:-2]
 
-			self.need_handle_line = newlines
+			self.processing_line = content
 			self.need_next = True
 			return
 		# @n 重复几次即为包含下面几行
-		n_count = newlines.count(r'@n')
+		n_count = content.count(r'@n')
 		if(n_count):
-			self.need_handle_line = newlines
+			self.processing_line = content
 			self.temp_need_next = n_count
 			return
 		# 有需要处理的行代表暂时不能直接添加该行
-		if self.need_handle_line:
+		if self.processing_line:
 			return
 		# /处理行内的 Marco
 
-		self.newlines += newlines
+		self.new_line += content
+		self.append_message_line()
 
-	@classmethod
-	def processing_hful(cls, content):
+	def processing_hful(self, content):
+		if not self.is_HFUL:
+			return content
+		self.is_HFUL = False
 		new_content = ''
 		for index, value in enumerate(content):
 			if value == '。': continue
@@ -320,15 +339,23 @@ class ScenarioMessage:
 			# 重置 Flag
 			self.need_next = False
 			# 正则替换行内的@a(ID)
-			self.newlines += re.sub('(@a\(\d+\))', self.inline_macros, self.need_handle_line)
+			new_line = re.sub('(@a\(\d+\))', self.inline_macros, self.processing_line)
 		else:
 			self.temp_need_next = 0
 			self.fore_need_next = False
 			# 正则替换行内的@n
-			self.newlines += re.sub('(@n)+', self.inline_macros, self.need_handle_line)
-		# 重置部分参数
-		self.need_handle_line = None
+			new_line = re.sub('(@n)+', self.inline_macros, self.processing_line)
+		# 替换短标签
+		self.new_line += new_line.replace('[resetfont]', '[rf]')
+
+		# 重置参数
+		self.processing_line = None
 		self.inline_macros = ''
+
+	def append_message_line(self):
+		self.scenario_handler.last_message_index = len(self.scenario_handler.newlines)
+		self.scenario_handler.newlines.append(self.new_line)
+		self.new_line = ''
 
 	# 处理特殊字符 (以 \xec 开头)
 	# \xec\x4a = Line Macro Start
@@ -384,20 +411,18 @@ class ScenarioMessage:
 		# 上标文字 Ruby
 		content = re.sub('<(.*?),(.*?)>', self.get_ruby_macro, content)
 
-		# 特殊换行标记
-		if(self.is_start_line == False and content[:2] == '^　' and self.newlines != '' and self.already_reline == False):
-			content = re.sub('^(\^+)', lambda m:'[br]' * (len(m.group(1))) + '\n', content)
 		# 开头的换行标记 ^
-		if self.is_start_line:
-			content = re.sub('^(\^+)', lambda m:'@r\n' * (len(m.group(1))), content)
-		else:
-			content = re.sub('^(\^+)', self.get_beginning_r_macro, content)
+		content = re.sub('^(\^+)', lambda m:'@r\n' * (len(m.group(1))), content)
 		# 剩下的换行标记 ^
-		content = re.sub('(\^+)(@n)?(.{0,2})', self.get_remained_r_macro, content)
+		content = re.sub('(\^+)(@n)?(.{0,2})', self.get_reline_macro, content)
 
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
 			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
+
+		# 替换特殊字符
+		content = content.replace('〜', '～')
+
 		return content
 
 	# For re.sub
@@ -410,13 +435,7 @@ class ScenarioMessage:
 
 	# For re.sub
 	@classmethod
-	def get_beginning_r_macro(cls, m):
-		br_count = len(m.group(1))
-		return '@r\n' * (br_count - 1) if br_count > 1 else ''
-
-	# For re.sub
-	@classmethod
-	def get_remained_r_macro(cls, m):
+	def get_reline_macro(cls, m):
 		br_count = len(m.group(1))
 		if(not m.group(3) or m.group(3)[0] == '@'):
 			text = '\n@r' * br_count + '\n'
@@ -431,6 +450,7 @@ class ScenarioMessage:
 class ScenarioFile:
 	def __init__(self, file_path):
 		self.lines = None
+		self.last_message_index = -1
 		self.newlines = []
 		self.file_path = file_path
 		self.filename = os.path.basename(file_path)
@@ -446,23 +466,19 @@ class ScenarioFile:
 		self.processing_file()
 
 	def processing_file(self):
-		message_handle = ScenarioMessage()
+		message_handler = ScenarioMessage(self)
 		for line in self.lines:
 			scenario_line = ScenarioLine(line) # 处理行
 			# [hfu] [hfl]
 			if(scenario_line.macro == 'HFUL'):
-				message_handle.is_HFUL = True
+				message_handler.is_HFUL = True
 				continue
 			# 剧本特殊处理
-			if(message_handle.need_next or message_handle.temp_need_next > 0 or scenario_line.ismessage):
-				message_handle.add_line(scenario_line) # need_next 等变量可能会变化所以需要重新判断
-				if(message_handle.need_handle_line == None):
-					newlines = message_handle.newlines.replace('〜', '～') # ~ 号需要特殊处理
-					newlines = newlines.replace('[resetfont]', '[rf]')  # 替换短链接
-					self.newlines.append(newlines)
-					message_handle.reset_variables()
+			if(message_handler.need_next or message_handler.temp_need_next > 0 or scenario_line.ismessage):
+				message_handler.add_line(scenario_line) # need_next 等变量可能会变化所以需要重新判断
 				continue
 			# /剧本特殊处理
+			if message_handler.new_line: message_handler.append_message_line()
 			self.newlines.append(scenario_line.newline)
 
 	def output_file(self):
@@ -472,7 +488,6 @@ class ScenarioFile:
 			if not line == '':
 				new_file += line + '\n'
 		new_file = new_file.replace('\n\n', '\n') # 去除多余的换行
-		new_file = new_file.replace('[lr]\n~\n', '[l]\n') # 额外处理[l]
 		fs.write(new_file)
 		fs.close()
 

@@ -111,7 +111,7 @@ macros = {
 	'VPLY':'@say',
 	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '0acanskip=false':'@wait acanskip=false'},
-	'WTKY':'@lr',
+	'WTKY':'@l',
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
