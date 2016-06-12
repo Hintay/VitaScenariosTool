@@ -133,6 +133,9 @@ class ScenarioLine:
 					if par_key == 'storages':
 						storages = [STORAGES.get(storage, storage) for storage in par_value.split(',')]
 						par_value = ','.join(storages)
+					elif par_key == 'poss':
+						poss = [POS.get(pos, pos) for pos in par_value.split(',')]
+						par_value = ','.join(poss)
 					elif self.macro == 'MPLY' and par_key == 'storage':
 						par_value = BGM.get(parsplit[1], parsplit[1])
 					elif self.macro_converted == '@rep' and par_key == 'storage':

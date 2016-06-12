@@ -505,4 +505,4 @@ STORAGES = {
 	'IMG_2F5262FC_ステン': 'ステンドグラスcenter-(夜)',
 }
 
-SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':TARGET, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'storage': STORAGES }
+SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'storage': STORAGES }
