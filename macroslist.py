@@ -466,4 +466,38 @@ SAY_NAME = {
 	'BZK': '二人',
 }
 
-SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':TARGET, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE }
+STORAGES = {
+	'IMG_670A352B_iバゼ': 'iバゼットの隠れ家_内部(夢現)-(白)',
+	'IMG_EF60BDD8_iバゼ': 'iバゼットの隠れ家_内部(夢現)(血痕)-(白)',
+	'IMG_C7931E16_iバゼ': 'iバゼットの隠れ家_内部-(深夜)',
+	'IMG_FDFEA332_oバゼ': 'oバゼットの隠れ家(姉)-(深夜)',
+	'IMG_9F1C24C2_oバゼ': 'oバゼットの隠れ家(妹)-(深夜)',
+	'IMG_72F65F4F_oバゼ': 'oバゼットの隠れ家(妹)-(昼)',
+	'IMG_D641DBCB_o教会': 'o教会付近の街並(秋)-(深夜)',
+	'IMG_FC5D6E5A_63ア': '63アンリマユ過去回想01生まれた村',
+	'IMG_3A40273E_i言峰': 'i言峰教会礼拝堂(廃虚)-(月明)',
+	'IMG_8D37F8DA_o言峰': 'o言峰教会前(秋)(灯り無し)-(夜)',
+	'IMG_A7F96129_汎用戦': '汎用戦闘バゼット_腕A_a',
+	'IMG_8FEFBEFA_汎用戦': '汎用戦闘バゼット_腕B_a',
+	'IMG_6C0B1867_汎用戦': '汎用戦闘バゼット_腕B_a(紫)',
+	'IMG_0F7D7030_汎用戦': '汎用戦闘バゼット_腕A_a(紫)',
+	'IMG_0F7D702E_汎用戦': '汎用戦闘バゼット_腕A_c(紫)',
+	'IMG_02FC1CB2_黒セイ': '黒セイバーFD特殊01a(遠)',
+	'IMG_9D7FD2E9_キャス': 'キャスターローブ無し01b(中)',
+	'IMG_77E6D2EC_キャス': 'キャスターローブ無し02a(中)',
+	'IMG_0C99E447_カレン': 'カレン修道服無帽01c頬(中)',
+	'IMG_D8845CB2_カレン': 'カレン修道服無帽01f頬(中)',
+	'IMG_0CDBE447_カレン': 'カレン修道服無帽03c(中)',
+	'IMG_CC0FE447_カレン': 'カレン修道服無帽03c頬(近)',
+	'IMG_87266CA8_カレン': 'カレン修道服無帽03d頬(近)',
+	'IMG_82E7E624_カレン': 'カレン修道服無帽04h頬(中)',
+	'IMG_0718AC6A_カレン': 'カレン修道服無帽04n頬(近)',
+	'IMG_479CAC6A_カレン': 'カレン修道服無帽04n頬(中)',
+	'IMG_C7F26CA8_カレン': 'カレン修道服無帽03d(中)',
+	#'IMG_981D5CB2_カレン': ''
+	#'IMG_E54DCC56_カレン': 'カレン修道服無帽03b頬(近)',
+	'IMG_DC78E402_セイバ': 'セイバー私服_箸持ち09a(中)',
+	'IMG_C002DF3D_o冬木': 'o冬木大橋袂の公園1(秋)-(深夜)',
+}
+
+SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':TARGET, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'storage': STORAGES }
