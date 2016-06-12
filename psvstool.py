@@ -130,7 +130,10 @@ class ScenarioLine:
 					if par_key in SPECIAL_PARAMETER.keys():
 						par_value = SPECIAL_PARAMETER[par_key].get(par_value, par_value)
 
-					if self.macro == 'MPLY' and par_key == 'storage':
+					if par_key == 'storages':
+						storages = [STORAGES.get(storage, storage) for storage in par_value.split(',')]
+						par_value = ','.join(storages)
+					elif self.macro == 'MPLY' and par_key == 'storage':
 						par_value = BGM.get(parsplit[1], parsplit[1])
 					elif self.macro_converted == '@rep' and par_key == 'storage':
 						par_key = 'bg'

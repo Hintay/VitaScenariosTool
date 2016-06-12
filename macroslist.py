@@ -474,6 +474,11 @@ STORAGES = {
 	'IMG_9F1C24C2_oバゼ': 'oバゼットの隠れ家(妹)-(深夜)',
 	'IMG_72F65F4F_oバゼ': 'oバゼットの隠れ家(妹)-(昼)',
 	'IMG_D641DBCB_o教会': 'o教会付近の街並(秋)-(深夜)',
+	'IMG_0B7C49DE_57カ': '57カレン過去回想04祈りと働き',
+	'IMG_ED41252C_58ラ': '58ランサー過去回想01旅立ち',
+	'IMG_8A9B0663_59ラ': '59ランサー過去回想02影の国',
+	'IMG_CE2887EE_60ラ': '60ランサー過去回想03アルスター',
+	'IMG_D0C51D78_61ラ': '61ランサー過去回想04英雄の黄昏',
 	'IMG_FC5D6E5A_63ア': '63アンリマユ過去回想01生まれた村',
 	'IMG_3A40273E_i言峰': 'i言峰教会礼拝堂(廃虚)-(月明)',
 	'IMG_8D37F8DA_o言峰': 'o言峰教会前(秋)(灯り無し)-(夜)',
@@ -497,7 +502,7 @@ STORAGES = {
 	#'IMG_981D5CB2_カレン': ''
 	#'IMG_E54DCC56_カレン': 'カレン修道服無帽03b頬(近)',
 	'IMG_DC78E402_セイバ': 'セイバー私服_箸持ち09a(中)',
-	'IMG_C002DF3D_o冬木': 'o冬木大橋袂の公園1(秋)-(深夜)',
+	'IMG_2F5262FC_ステン': 'ステンドグラスcenter-(夜)',
 }
 
 SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':TARGET, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'storage': STORAGES }
