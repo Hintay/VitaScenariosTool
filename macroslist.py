@@ -7,18 +7,18 @@
 ###########
 # Special
 ###########
-ignore_macros = ['SYNC', 'KMW2', 'HFUL', 'PEND']
+IGNORE_MACROS = ['SYNC', 'KMW2', 'HFUL', 'PEND']
 # 最后可能有括号
-bracket_end_macros = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
+BRACKET_END_MACROS = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
 # 最前面无逗号
-macros_without_comma = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
+MACROS_WITHOUT_COMMA = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
 
-ignore_parameters = ['002', '113', '237', '238', '239']
+IGNORE_PARAMETERS = ['002', '113', '237', '238', '239']
 
-close_inline_macro = ['VPLY', 'TPG0', 'BRET']
+CLOSE_INLINE_MACRO = ['VPLY', 'TPG0', 'BRET']
 ###########
 
-macros = {
+MACROS = {
 	'BFNT':'@font',
 	'BIED':'@interlude_end',
 	'BIVF':{'0':'@visibleframe', '1':'@invisibleframe'},
@@ -129,7 +129,7 @@ macros = {
 # _HFTF(0,`026:クイズタイガー編クリア,`235:1; @eval exp="tf['クイズタイガー編クリア']=true"
 
 # 以`开头
-parameters = {
+PARAMETERS = {
 	#'002':'haverule', # 2=on 0=none ?
 	'003':'time',
 	'004':'vague',
@@ -228,24 +228,24 @@ parameters = {
 	#'239':'', #@loopmove
 }
 
-target = {
+TARGET = {
 	'1':'bg',
 	'2':'fg',
 	'3':'all',
 }
 
-page = {
+PAGE = {
 	'0':'back',
 	'1':'fore'
 }
 
-call = {
+CALL = {
 	'(1013':'カレン-01.ks',
 	'(1166':'街編・1日目-03.ks',
 	'(1179':'街編・1日目-24.ks'
 }
 
-rule = {
+RULE = {
 	'001':'crystal_bt',
 	'002':'l2r_half',
 	'003':'l2r_ss',
@@ -301,7 +301,7 @@ rule = {
 	'079':'左回り連続2',
 }
 
-pos = {
+POS = {
 	'-1':'all',
 	'1':'l',
 	'2':'r',
@@ -311,14 +311,14 @@ pos = {
 	'1ower':'lower', #替换文本
 }
 
-layer = {
+LAYER = {
 	'-2':'&no',
 	'-1':'base',
 	'1':'base',
 	'255':'all'
 }
 
-bgm = {
+BGM = {
 	'0':'bgm01',
 	'1':'bgm03',
 	'2':'bgm04',
@@ -451,19 +451,19 @@ bgm = {
 }
 '''
 
-true_false = {
+TRUE_FALSE = {
 	'0':'false',
 	'1':'true'
 }
 
-noise_type = {
+NOISE_TYPE = {
 	'1':'ltDodge'
 }
 
-say_name = {
+SAY_NAME = {
 	'RIN': '凛',
 	'SHI': '士郎',
 	'BZK': '二人',
 }
 
-special_parameter = { 'target':target, 'page':page, 'rule':rule, 'pos':pos, 'layer':layer, 'nowait':true_false, 'type':noise_type }
+SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':TARGET, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE }

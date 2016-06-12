@@ -12,7 +12,7 @@ import sys
 import codecs
 import argparse
 
-encoding = 'Shift_JIS'
+ENCODING = 'Shift_JIS'
 
 # 处理行
 class ScenarioLine:
@@ -36,7 +36,7 @@ class ScenarioLine:
 		matchs = re.match(b'^_(.*?)\((.*)', self.line)
 		if(matchs): # 匹配至(宏)(宏参数)
 			self.macro = matchs.group(1).decode()
-			if(self.macro in ignore_macros): return
+			if(self.macro in IGNORE_MACROS): return
 
 			# 判断文本
 			# MSA2 上行只可能有 WTKY；MSAD上方可能有其他代码，并等运行完才会显示。（应该适用于文本快进）
@@ -58,11 +58,11 @@ class ScenarioLine:
 				self.get_hftf(matchs.group(2))
 				return
 
-			elif(macros.get(self.macro)): # macro 列表中有匹配
+			elif(MACROS.get(self.macro)): # macro 列表中有匹配
 				if matchs.group(2): # 若有参数
-					self.parameters = matchs.group(2).split(bytes(',`', encoding)) # 分割后[0]为宏参数
+					self.parameters = matchs.group(2).split(bytes(',`', ENCODING)) # 分割后[0]为宏参数
 			else: # 找不到相应macro时不处理
-				self.newline += ';%s' % self.line.decode(encoding)
+				self.newline += ';%s' % self.line.decode(ENCODING)
 				return
 		else: # 未匹配到任何数据，一般不会出现
 			print(self.line, file=sys.stderr)
@@ -72,27 +72,27 @@ class ScenarioLine:
 	def get_hftf(self, parameters):
 		par_dict = {}
 		par_keys = {'026': 'eval', '235':'result'}
-		for parameter in parameters.decode(encoding).split(',`'):
+		for parameter in parameters.decode(ENCODING).split(',`'):
 			if(parameter == '0'): continue
 			parsplit = parameter.split(':')
 			par_dict[par_keys[parsplit[0]]] = parsplit[1]
-		self.newline += '@eval exp="tf[\'%s\']=%s"' % (par_dict['eval'], true_false[par_dict['result']])
+		self.newline += '@eval exp="tf[\'%s\']=%s"' % (par_dict['eval'], TRUE_FALSE[par_dict['result']])
 
 	# 匹配宏类型
 	def match_macro_type(self):
-		if self.macro in bracket_end_macros and self.parameters[0][-1:] == b')':
+		if self.macro in BRACKET_END_MACROS and self.parameters[0][-1:] == b')':
 			self.parameters[0] = self.parameters[0][:-1]
-		if not self.parameters or self.ismessage or self.macro in macros_without_comma:
+		if not self.parameters or self.ismessage or self.macro in MACROS_WITHOUT_COMMA:
 			return
 		parameter = self.parameters[0]
-		macro_types = parameter.decode(encoding).split(',')
+		macro_types = parameter.decode(ENCODING).split(',')
 		if len(macro_types) > 1: # 宏有子类型
 			if self.macro == 'BTXO': # 特殊处理，无额外参数的
-				self.parameters.append(b'003:'+macro_types[1].encode(encoding))
+				self.parameters.append(b'003:'+macro_types[1].encode(ENCODING))
 			else:
 				self.macro_subtype = macro_types[1]
 		try: # 有对应macro则删除参数
-			if(macros[self.macro][macro_types[0]] != None):
+			if(MACROS[self.macro][macro_types[0]] != None):
 				self.macro_type = macro_types[0]
 				del self.parameters[0] # 使用后移除参数
 		# 无对应macro，例：*page
@@ -103,35 +103,35 @@ class ScenarioLine:
 
 	# 获取宏名字
 	def get_macro_name(self):
-		if(self.macro and macros.get(self.macro)):
+		if(self.macro and MACROS.get(self.macro)):
 			#print(self.macro)
 			#print(self.macro_type)
 			if self.macro_type != None:
 				if self.macro_subtype != None:
-					return(macros[self.macro][self.macro_type][self.macro_subtype])
+					return(MACROS[self.macro][self.macro_type][self.macro_subtype])
 				else:
-					return(macros[self.macro][self.macro_type])
+					return(MACROS[self.macro][self.macro_type])
 			else:
-				return(macros[self.macro])
+				return(MACROS[self.macro])
 		else:
 			return # 无对应的macro type
 
 	# 获取参数文本
 	def get_parameters(self):
 		for par in self.parameters:
-			parsplit = par.decode(encoding).split(':')
+			parsplit = par.decode(ENCODING).split(':')
 			# 若分割出的参数小于2则没有参数可分割
 			if not len(parsplit) < 2:
 				par_key = parsplit[0]
 				par_value = parsplit[1]
-				if(parameters.get(par_key)):
-					par_key = parameters[par_key]
+				if(PARAMETERS.get(par_key)):
+					par_key = PARAMETERS[par_key]
 
-					if par_key in special_parameter.keys():
-						par_value = special_parameter[par_key].get(par_value, par_value)
+					if par_key in SPECIAL_PARAMETER.keys():
+						par_value = SPECIAL_PARAMETER[par_key].get(par_value, par_value)
 
 					if self.macro == 'MPLY' and par_key == 'storage':
-						par_value = bgm.get(parsplit[1], parsplit[1])
+						par_value = BGM.get(parsplit[1], parsplit[1])
 					elif self.macro_converted == '@rep' and par_key == 'storage':
 						par_key = 'bg'
 					elif self.macro == 'KMVE' and par_key == 'mag':
@@ -139,7 +139,7 @@ class ScenarioLine:
 					elif self.macro == 'IRIW' and par_key == 'target' and parsplit[1][:6] == '_PAGE(':
 						par_value = '*page%s %s' % (parsplit[1][6], parsplit[1][7:])
 				else:
-					if par_key in ignore_parameters:
+					if par_key in IGNORE_PARAMETERS:
 						continue
 					par_key = '`' + par_key
 			else:
@@ -171,10 +171,10 @@ class ScenarioLine:
 					if par_value == '0': par_value = 'user'
 				elif self.macro == 'FCAL':
 					par_key = 'storage'
-					par_value = call.get(par_value, par_value)
+					par_value = CALL.get(par_value, par_value)
 				elif self.macro == 'MTLK':
 					say_key = par_value.split(',')[1]
-					say_value = say_name.get(say_key, say_key)
+					say_value = SAY_NAME.get(say_key, say_key)
 					if(say_value):
 						self.newparameters += ' name=%s' % say_value
 					return
@@ -199,7 +199,7 @@ class ScenarioLine:
 			self.newline += self.macro_converted
 			self.newline += self.newparameters
 		else:
-			self.newline += ';%s' % self.line.decode(encoding)
+			self.newline += ';%s' % self.line.decode(ENCODING)
 
 # 处理剧本Message
 class ScenarioMessage:
@@ -240,7 +240,7 @@ class ScenarioMessage:
 			if not lineinfo.newline:
 				return
 			# 特殊情况封闭行内标签 - 语音等
-			elif lineinfo.macro in close_inline_macro:
+			elif lineinfo.macro in CLOSE_INLINE_MACRO:
 				if self.temp_need_next > 0:
 					self.end_inline_macros('n')
 				elif self.need_next:
@@ -387,13 +387,13 @@ class ScenarioMessage:
 		content = content.replace(b'\xec\x54', b'[wacky len=12]')
 		# 处理Line宏
 		content = re.sub(b'((?:\xec\x4a)(?:\xec\x46)*(?:\xec\x48))',
-			lambda m: b'[line len=' + str(int(len(m.group(1))/2)).encode(encoding) + b']', content)
+			lambda m: b'[line len=' + str(int(len(m.group(1))/2)).encode(ENCODING) + b']', content)
 		# 处理Block宏
 		content = re.sub(b'((?:\xec\x4b)(?:\xec\x47)*(?:\xec\x49))',
-			lambda m: b'[block len=' + str(int(len(m.group(1))/2)).encode(encoding) + b']', content)
+			lambda m: b'[block len=' + str(int(len(m.group(1))/2)).encode(ENCODING) + b']', content)
 		# 解码为unicode
 		try:
-			content = content.decode(encoding)
+			content = content.decode(ENCODING)
 		except UnicodeDecodeError:
 			print(content, file=sys.stderr)
 			sys.exit(20)
