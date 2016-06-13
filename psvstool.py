@@ -130,10 +130,10 @@ class ScenarioLine:
 					if par_key in SPECIAL_PARAMETER.keys():
 						par_value = SPECIAL_PARAMETER[par_key].get(par_value, par_value)
 
-					if par_key == 'storages':
+					if par_key == 'storages' or par_key == 'storage' or par_key == 'last':
 						storages = [STORAGES.get(storage, storage) for storage in par_value.split(',')]
 						par_value = ','.join(storages)
-					elif par_key == 'poss':
+					if par_key == 'poss':
 						poss = [POS.get(pos, pos) for pos in par_value.split(',')]
 						par_value = ','.join(poss)
 					elif self.macro == 'MPLY' and par_key == 'storage':
@@ -505,7 +505,7 @@ def parse_args():
 def convert_verb(args):
 	if not os.path.exists(args.input):
 		parser.print_usage()
-		print('Error: the following file or folder does not exist: ' + args.input)
+		print('Error: the following file or folder does not exist: ' + args.input, file=sys.stderr)
 		sys.exit(20)
 
 	if os.path.isfile(args.input):
