@@ -23,6 +23,7 @@ class ScenarioLine:
 		self.macro_type = None
 		self.macro_subtype = None
 		self.macro_comment_out = False # 该行是否需要注释
+		self.macro_convert = True
 		self.macro_converted = None
 		self.parameters = ''
 		self.newparameters = ''
@@ -98,12 +99,13 @@ class ScenarioLine:
 		# 无对应macro，例：*page
 		except TypeError:
 			pass
-		except KeyError:
+		except KeyError: # 无对应字典中的键值，返回的应该是字典
+			self.macro_convert = False
 			pass
 
 	# 获取宏名字
 	def get_macro_name(self):
-		if(self.macro and MACROS.get(self.macro)):
+		if(self.macro and MACROS.get(self.macro) and self.macro_convert):
 			#print(self.macro)
 			#print(self.macro_type)
 			if self.macro_type != None:
@@ -155,9 +157,9 @@ class ScenarioLine:
 					self.macro_converted += parsplit[0]
 					return
 				elif self.macro == 'NEVL': # @eval
-					eval_value = par_value.split('=')
-					par_key = eval_value[0]
-					par_value = '"%s"' % eval_value[1]
+					par_key = 'exp'
+					if(par_value[:3] == 'exp'):
+						par_value = '"%s"' % par_value[4:]
 				elif self.macro == 'VPLY': # 语音标签
 					voice_split = par_value.split(',')
 					try: # 格式检查
