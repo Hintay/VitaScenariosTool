@@ -917,4 +917,14 @@ STORAGES = {
 	'': '',
 }
 
+EDGE_SETTING = {
+	'1': 'edgecolor=0x331111',
+	'2': 'edgecolor=0xaaaaaa',
+	'3': 'edgecolor=0x999999',
+	'4': 'edgecolor=0x999999',
+	'5': 'edgecolor=0x999999',
+	'6': 'edgecolor=0xbbbbbb',
+	'7': 'edge=0'
+}
+
 SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'base': STORAGES }

@@ -406,13 +406,15 @@ class ScenarioMessage:
 			print(content, file=sys.stderr)
 			sys.exit(20)
 
-		# @s(28) [large] @s(16) [small]
+		# @s(40) [quad]; @s(28) [large]; @s(16) [small]
 		if(content.find('@s(') >= 0):
 			matchs = re.match(r'^(?:\^)*@s\((\d{2})\)(?:@n)?$', content)
 			if(matchs):
+				content = content.replace('@s(40)@n', '@quad')
 				content = content.replace('@s(28)@n', '@large')
 				content = content.replace('@s(16)@n', '@small')
 			else:
+				content = content.replace('@s(40)', '[quad]')
 				content = content.replace('@s(28)', '[large]')
 				content = content.replace('@s(16)', '[small]')
 
@@ -426,12 +428,24 @@ class ScenarioMessage:
 
 		# 颜色标记 @c(r,g,b) = [font color=0x000000]
 		content = re.sub('@c\((\d+),(\d+),(\d+)\)',
-			lambda m: '[font color=0x{:0>2}{:0>2}{:0>2}]'.format(m.group(1), m.group(2), m.group(3)), content)
+			lambda m: '[font color=0x{:02X}{:02X}{:02X}]'.format(int(m.group(1)), int(m.group(2)), int(m.group(3))), content)
+		# 描边
+		if(content.find('@m') >= 0):
+			content = re.sub('@m(\d)', self.replace_font_edge, content)
+		# 斜体
+		content = content.replace('@i', '[font italic=1]')
 
 		# 替换特殊字符
 		content = content.replace('〜', '～')
 
 		return content
+
+	def replace_font_edge(self, m):
+		edgetext = EDGE_SETTING.get(m.group(1))
+		if edgetext:
+			edgeline = '@font ' + edgetext
+			self.scenario_handler.newlines.append(edgeline)
+		return '' # 替换为空
 
 	# For re.sub
 	@classmethod
