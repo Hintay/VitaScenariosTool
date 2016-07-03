@@ -13,7 +13,7 @@ BRACKET_END_MACROS = ['BTXO', 'BIVF', 'MPAU', 'WTVT']
 # 最前面无逗号
 MACROS_WITHOUT_COMMA = ['KHZE', 'PAGE', 'FCAL', 'NEVL', 'KFCH', 'VPLY', 'WTVT', 'KDLY']
 
-IGNORE_PARAMETERS = ['002', '113', '237', '238', '239']
+IGNORE_PARAMETERS = ['000', '002', '237', '238', '239']
 
 CLOSE_INLINE_MACRO = ['VPLY', 'TPG0', 'BRET']
 ###########
@@ -26,16 +26,22 @@ MACROS = {
 	'BRET':'@return',
 	'BCAL':'@call',
 	'BHCS':'@hidecursorsetting',
+	'BHMS':'@sethollowmode',
 	'BTXO':{'0':'@textoff', '1':'@texton'},
+	'CDKN':{'0':'@darken', '1':'@darkenT'},
+	'CDKO':{'0':'@darkenoff', '1':'@darkenoffT'},
 	'CFAD':{'0':'@fadein', '1':'@bg', '2':'@rep'},
-	'CHCL':{'0':{'0':'@condoff', '2':'@red', '3':'@green', '4':'@blue', '5':'@nega', '6':'@monocro'}, '1':{'2':'@red', '8':'@sepia'}},
+	'CHCL':{'0':{'0':'@condoff', '2':'@red', '3':'@green', '4':'@blue', '5':'@nega', '6':'@monocro'}, '1':{'0':'@condoffT', '2':'@redT', '3':'@greenT', '4':'@blueT', '5':'@negaT', '6':'@monocroT'}},
 	'CHZB':'@haze_back',
 	'CHZS':'@stophaze',
 	'CHTC':{'1':'@hearttonecombo'},
 	#'COND':'',
 	'CTRX':'@transex',
-	'CCTO':{'0':'@contrastoff'},
+	'CCTO':{'0':'@contrastoff', '1':'@contrastoffT'},
 	'CCTR':{'1':'@contrast'},
+	'CSCC':{'0':'@slideclosecombo', '1':'@slideclosecomboT'},
+	'CSOC':{'0':'@slideopencombo', '1':'@slideopencomboT'},
+	'EVCL':'@date_title',
 	'FCAL':'@call', #_FCAL((1166; @call storage=街編・1日目-03.ks
 	'HRDW':'@redraw',
 	'HFAN':'@hfangry',
@@ -49,18 +55,22 @@ MACROS = {
 	'HFSW':'@hfsweat',
 	'HFPP':'@hfpop',
 	'HFWW':'@hfwww',
+	'HFLK':{'0':'@flicker', '1':'@flickerT'},
 	#'HFTF':'@tf',
 	#'HFUL':{'2':''}, #_HFUL(2; [hfu]字[hfl] 须特殊处理
-	'HSMG':{'0':'@smudge'},
-	'HSMO':{'0':'@smudgeoff'},
+	'HSMG':{'0':'@smudge', '1':'@smudgeT'},
+	'HSMO':{'0':'@smudgeoff', '1':'@smudgeoffT'},
+	'HSPS':{'0':{'0':'@superpose_off'}, '1':{'0':'@superpose'}},
 	'IRIY':'@history enabled=false\n@shortcutkey enabled=false\n@cancelskip',
 	'IRIW':'@showiriyacastle',
+	'KBDC':{'0':'@broadencombo', '1':'@broadencomboT'},
 	'KDSH':'@dash',
 	'KDSS':{'0':'@stopdash'},
 	'KDSC':{'0':'@dashcombo', '1':'@dashcomboT'},
 	'KDSW':'@wdash',
 	'KDLY':'@delay',
 	'KFCH':'@chgfg',
+	'KFLC':{'0':'@foldcombo', '1':'@foldcomboT'},
 	'KFG0':'@fg',
 	'KFMV':'@movefg', # @monocro
 	'KMST':'@stopmove', # @stopsplinemove
@@ -69,19 +79,29 @@ MACROS = {
 	'KMVE':'@move',
 	'KMLP':'@loopmove',
 	'KSMW':'@wsplinemove',
+	'KSMC':{'0':'@splinemovecombo', '1':'@splinemovecomboT'},
 	'KHZE':'@haze',
 	'KFND':'@find',
 	'KSMV':'@splinemove',
+	'KIMD':'@image4demo',
 	'KIMG':'@image',
 	'KIME':'@imageex',
+	'KIMT':'@touchimages',
+	'KLAL':{'0':'@ldall', '1':'@ldallT'},
+	'KLD0':'@ld',
+	'KLDA':'@ld_auto',
+	'KLNT':'@ld_notrans',
 	'KWRS':'@resetwait',
 	'MPLY':{'0':'@play', '2':'@xchgbgm'},
 	'MPAU':{'0':'@playresume', '1':'@playpause'},
 	'MSTP':{'0':'@playstop'},
 	'NEVL':'@eval', #_NEVL(exp=Scripts.execStorage(HanafudaPlugin.tjs);
 	'NCL0':'@cl',
+	'NCLA':'@cl_auto',
 	'NCLF':'@clfg',
-	'NCIN':{'0':'@cinesco'},
+	'NCLT':'@cl_notrans',
+	'NCLR':'@rclick', 
+	'NCIN':{'0':'@cinesco', '1':'@cinescoT'},
 	'NCTR':'@cltransparent',
 	'NCIO':{'0':'@cinesco_off', '1':'@cinesco_offT'},
 	'NNOB':'@noise_back',
@@ -92,7 +112,7 @@ MACROS = {
 	'NQUL':'@lquake',
 	'NQLS':'@stoplquake',
 	'NLYO':'@layopt',
-	'NSHK':{'0':'@shock'},
+	'NSHK':{'0':'@shock', '1':'@shockT'},
 	'NSHW':'@wshock',
 	'NLYB':'@backlay',
 	'PAGE':'*page',
@@ -115,6 +135,7 @@ MACROS = {
 	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '1':'@waitT', '0acanskip=false':'@wait acanskip=false'},
 	'WTKY':'@l',
+	'WTKN':'@l',
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
@@ -133,12 +154,15 @@ MACROS = {
 
 # 以`开头
 PARAMETERS = {
+	'001': 'call',
 	#'002':'haverule', # 2=on 0=none ?
 	'003':'time',
 	'004':'vague',
 	'005':'storage', # bg for @rep?
+	'007':'method',
 	'008':'canskip',
 	'010':'page',
+	'011':'visible',
 	'012':'layer', # -2=&no -1=base 255=all
 	'013':'left',
 	'014':'top',
@@ -148,6 +172,7 @@ PARAMETERS = {
 	'019':'cy',
 	'020':'imag',
 	'021':'mag',
+	'022':'wait',
 	'023':'range', #_HSMG
 	'024':'level',
 	#'026':'tf', #_HFTF ??
@@ -170,6 +195,7 @@ PARAMETERS = {
 	'049':'my',
 	'050':'rot',
 	'051':'face',
+	'062':'date',
 	'067':'hmax',
 	'068':'upper',
 	'069':'lower',
@@ -178,6 +204,7 @@ PARAMETERS = {
 	'076':'hidefg',
 	'086':'color',
 	'087':'storages',
+	'088':'timeout',
 	'089':'center',
 	'090':'upperpow',
 	'091':'lowerpow',
@@ -189,7 +216,7 @@ PARAMETERS = {
 	'100':'py',
 	'101':'deg',
 	'111':'overlap',
-	#'113':'', #_KDSH @dash
+	'113':'mode', #_KDSH @dash
 	'114':'monocro',
 	'115':'both', #_KFMV @movefg
 	'116':'mover', #_KMLP @loopmove
@@ -202,12 +229,21 @@ PARAMETERS = {
 	'128':'edgecolor',
 	'131':'italic',
 	'132':'enabled',
-	#'139':'bg', #? _KDSH @dash _COND
+	'133':'timw',
+	'139':'condition', #? _KDSH @dash _COND
 	'141':'indexs',
 	'164':'rule',
 	'170':'spline',
 	'171':'affine',
 	'172':'path',
+	'200':'l',
+	'201':'r',
+	'203':'rc',
+	'204':'c',
+	'210':'il',
+	'211':'ir',
+	'213':'irc',
+	'214':'ic',
 	'216':'last',
 	'217':'lv2off',
 	'218':'fliplrs',
@@ -267,6 +303,7 @@ RULE = {
 	'015':'シャッター左から',
 	'016':'シャッター上から',
 	'022':'モザイク',
+	'025':'やや細かい縦ブラインド(左から右へ)',
 	'027':'やや細かい縦ブラインド(中央から左右へ)',
 	'028':'右から左へ',
 	'029':'右渦巻き',
@@ -927,4 +964,12 @@ EDGE_SETTING = {
 	'7': 'edge=0'
 }
 
-SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'base': STORAGES }
+METHOD = {
+	'001': 'crossfade',
+}
+
+MODE = {
+	'0':'lr'
+}
+
+SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'base': STORAGES, 'method':METHOD, 'mode':MODE }
