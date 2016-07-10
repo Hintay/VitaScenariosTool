@@ -20,6 +20,7 @@ class ChangeVoiceName:
 		for root, dirs, files in os.walk(self.folder):
 			for f in files:
 				if f.endswith('opus'):
+					if self.shrine_fix(root, f): continue
 					voice_number = self.match_number(os.path.splitext(f)[0])
 					try:
 						if self.hex_mod:
@@ -39,6 +40,8 @@ class ChangeVoiceName:
 			if len(voice_name) == 4:
 				if(voice_name[0] == ''):
 					new_name = '%s_%s.opus' % (voice_name[2], voice_name[3])
+				elif(voice_name[0] == 'EMA_' or voice_name[0] == 'KUJI'):
+					new_name = '%s_%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
 				else:
 					new_name = '%s%s_%s_%s.opus' % (voice_name[0], voice_name[1], voice_name[2], voice_name[3])
 			else:
@@ -53,6 +56,18 @@ class ChangeVoiceName:
 			os.rename(os.path.join(root_path, file_name), os.path.join(root_path, new_name))
 		except WindowsError:
 			print('   Rename FAILED!', file=sys.stderr)
+
+	def shrine_fix(self, root_path, file_name):
+		if (file_name.startswith('EMA_') and file_name[4] != '_') or (file_name.startswith('KUJI') and (file_name[4] != '_' and file_name[4] != 'F')):
+			new_name = file_name[:4] + '_' + file_name[4:]
+			try:
+				print('>> Rename %s to %s' % (file_name, new_name), file=sys.stderr)
+				os.rename(os.path.join(root_path, file_name), os.path.join(root_path, new_name))
+			except WindowsError:
+				print('   Rename FAILED!', file=sys.stderr)
+			return True
+		else:
+			return False
 
 	def match_number(self, file_name):
 		if self.hex_mod:
