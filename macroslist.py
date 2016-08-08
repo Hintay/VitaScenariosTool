@@ -30,23 +30,29 @@ MACROS = {
 	'BTXO':{'0':'@textoff', '1':'@texton'},
 	'CDKN':{'0':'@darken', '1':'@darkenT'},
 	'CDKO':{'0':'@darkenoff', '1':'@darkenoffT'},
-	'CFAD':{'0':'@fadein', '1':'@bg', '2':'@rep'},
-	'CHCL':{'0':{'0':'@condoff', '2':'@red', '3':'@green', '4':'@blue', '5':'@nega', '6':'@monocro'}, '1':{'0':'@condoffT', '2':'@redT', '3':'@greenT', '4':'@blueT', '5':'@negaT', '6':'@monocroT'}},
+	'CFAD':{'0':'@fadein', '1':'@bg', '2':'@rep', '3':'@fadein4demo'},
+	'CHCL':{'0':{'0':'@condoff', '2':'@red', '3':'@green', '4':'@blue', '5':'@nega', '6':'@monocro', '8':'@sepia'}, '1':{'0':'@condoffT', '2':'@redT', '3':'@greenT', '4':'@blueT', '5':'@negaT', '6':'@monocroT', '8':'@sepiaT'}},
 	'CHZB':'@haze_back',
 	'CHZS':'@stophaze',
+	'CHZN':'@nohaze_next',
 	'CHTC':{'1':'@hearttonecombo'},
+	'CHZT':'@hazetrans',
 	#'COND':'',
 	'CTRX':'@transex',
+	'CTRW':'@transex_w',
 	'CCTO':{'0':'@contrastoff', '1':'@contrastoffT'},
 	'CCTR':{'1':'@contrast'},
 	'CSCC':{'0':'@slideclosecombo', '1':'@slideclosecomboT'},
 	'CSOC':{'0':'@slideopencombo', '1':'@slideopencomboT'},
+	#'BDMS':{'0':'@demomode_off'},
 	'EVCL':'@date_title',
 	'FCAL':'@call', #_FCAL((1166; @call storage=街編・1日目-03.ks
+	'HDFC':'@defocus',
 	'HRDW':'@redraw',
 	'HFAN':'@hfangry',
 	'HFBB':'@hfburstblood',
 	'HFCN':'@hfchance',
+	'HFCM':'@flushcombo',
 	'HFFA':'@hfface',
 	'HFFC':'@hffacechg',
 	'HFFG':'@hffeelgood',
@@ -56,6 +62,7 @@ MACROS = {
 	'HFPP':'@hfpop',
 	'HFWW':'@hfwww',
 	'HFLK':{'0':'@flicker', '1':'@flickerT'},
+	'HPRI':{'0':'@prick', '1':'@prickT'},
 	#'HFTF':'@tf',
 	#'HFUL':{'2':''}, #_HFUL(2; [hfu]字[hfl] 须特殊处理
 	'HSMG':{'0':'@smudge', '1':'@smudgeT'},
@@ -105,8 +112,8 @@ MACROS = {
 	'NCTR':'@cltransparent',
 	'NCIO':{'0':'@cinesco_off', '1':'@cinesco_offT'},
 	'NNOB':'@noise_back',
-	'NNOI':{'0':'@noise'},
-	'NNOS':{'0':'@stopnoise'}, # @noise_off
+	'NNOI':{'0':'@noise', '1':'@noiseT'},
+	'NNOS':{'0':'@stopnoise', '1':'@noise_noback'}, # @noise_off
 	'NQUK':{'0':'@quake', '1':'@quakeT'},
 	'NQUS':'@stopquake',
 	'NQUL':'@lquake',
@@ -121,8 +128,11 @@ MACROS = {
 	#'QADE':'@endscript',
 	#'QADS':'.quiz	= %[%s]',
 	#'QADD':'quiz:[%s]',
+	'QTGE':'@tiger_end',
+	'QTGS':'@tiger_start',
+	'QATS':'@approachTigerSchool',
 	'SESF':'@sestop',
-	'SEPF':{'0':'@se', '2':'@seloop', '0tdeepdaytime':'@setdeepdaytime', '0thscene':'@sethscene'},
+	'SEPF':{'0':'@se', '2':'@seloop', '3':'@se','0tdeepdaytime':'@setdeepdaytime', '0thscene':'@sethscene'},
 	'SEFF':'@fadese',
 	'SNOW':{'0':'@snowuninit', '1':{'800':'@snowinit forevisible=false backvisible=true'}}, #@snowopt backvisible=false
 	'TCM0':'@cm',
@@ -130,7 +140,8 @@ MACROS = {
 	'TPG0':'@pg',
 	'TWND':{'0':'@setdaytime', '1':'@setnighttime'},
 	'TWT0':'@wt',
-	#'TRPY':,
+	'TTRO':'@trailon',
+	#'TRPY':, # 奖杯
 	'VPLY':'@say',
 	'WTVT':'@waitvoice',
 	'WTFT':{'0':'@wait', '1':'@waitT', '0acanskip=false':'@wait acanskip=false'},
@@ -139,11 +150,14 @@ MACROS = {
 	'WNDS':{'0':'@window_start', '1':'@window_end', '2':'@hanafuda_conversation'},
 	'MFNR':'@resetfont', # and @rf
 	'MVOL':'@fadebgm',
-	'MTLK':'@say'
+	'MTLK':'@say',
+	'NCLS':'@clickskip',
+	'NWAV':{'0':'@wave', '1':'@waveT'},
 	#'SYNC;:'',
 	#'WKST':'',
 	#'MVPL':'@playmovie',
 	#'MSAD':'', #文本框
+	#'LVSV':'', # 标题
 }
 # @smudge @blur @smudgeoff @bluroff @slideopencombo @slideclosecombo @pasttime 被_CFAD所替代
 # @shortcutkey @history 被去除
@@ -176,6 +190,7 @@ PARAMETERS = {
 	'023':'range', #_HSMG
 	'024':'level',
 	#'026':'tf', #_HFTF ??
+	'030':'route',
 	'032':'pos',
 	'033':'index',
 	'034':'noclear',
@@ -195,13 +210,24 @@ PARAMETERS = {
 	'049':'my',
 	'050':'rot',
 	'051':'face',
+	'053':'x',
+	'054':'y',
 	'062':'date',
 	'067':'hmax',
 	'068':'upper',
 	'069':'lower',
+	'071':'maxsize',
 	'074':'volume',
 	'075':'target',
 	'076':'hidefg',
+	'077':'mathod',
+	'079':'displacement',
+	'080':'blur',
+	'081':'otime',
+	'082':'oaccel',
+	'083':'ctime',
+	'084':'htime',
+	'085':'haccel',
 	'086':'color',
 	'087':'storages',
 	'088':'timeout',
@@ -209,12 +235,16 @@ PARAMETERS = {
 	'090':'upperpow',
 	'091':'lowerpow',
 	'092':'centerpow',
-	#'094':'id', #_SYNC starttag
+	'094':'no', #_SYNC
+	'095':'scene',
 	'096':'lwaves',
+	'097':'blend',
 	'098':'base',
 	'099':'px',
 	'100':'py',
 	'101':'deg',
+	'107':'day',
+	'110':'tome',
 	'111':'overlap',
 	'113':'mode', #_KDSH @dash
 	'114':'monocro',
@@ -226,22 +256,35 @@ PARAMETERS = {
 	'121':'intime',
 	'122':'waves',
 	'124':'standard',
+	'126':'wavetype',
+	'127':'noinit',
 	'128':'edgecolor',
 	'131':'italic',
 	'132':'enabled',
 	'133':'timw',
 	'139':'condition', #? _KDSH @dash _COND
 	'141':'indexs',
+	'149':'bmax',
+	'150':'storege',
+	'151':'pacity',
+	'154':'hvmax',
+	'155':'srcpage',
+	'156':'hamx',
+	'157':'root',
+	'160':'noreset',
+	'163':'vhmax',
 	'164':'rule',
 	'170':'spline',
 	'171':'affine',
 	'172':'path',
 	'200':'l',
 	'201':'r',
+	'202':'lc',
 	'203':'rc',
 	'204':'c',
 	'210':'il',
 	'211':'ir',
+	'212':'ilc',
 	'213':'irc',
 	'214':'ic',
 	'216':'last',
@@ -972,4 +1015,10 @@ MODE = {
 	'0':'lr'
 }
 
-SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'base': STORAGES, 'method':METHOD, 'mode':MODE }
+ROUTE = {
+	'1':'セイバー',
+	'2':'凛',
+	'3':'桜'
+}
+
+SPECIAL_PARAMETER = { 'target':TARGET, 'page':PAGE, 'rule':RULE, 'pos':POS, 'layer':LAYER, 'nowait':TRUE_FALSE, 'type':NOISE_TYPE, 'base': STORAGES, 'method':METHOD, 'mode':MODE, 'route':ROUTE }

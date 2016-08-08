@@ -12,7 +12,14 @@ import sys
 import codecs
 import argparse
 
-ENCODING = 'Shift_JIS'
+ENCODING = '932'
+MODE = 'hollow'
+
+# 临时处理
+if MODE != 'hollow':
+	voices_list = {}
+	special_name = {}
+	BGM = {}
 
 # 处理行
 class ScenarioLine:
@@ -108,13 +115,20 @@ class ScenarioLine:
 		if(self.macro and MACROS.get(self.macro) and self.macro_convert):
 			#print(self.macro)
 			#print(self.macro_type)
-			if self.macro_type != None:
-				if self.macro_subtype != None:
-					return(MACROS[self.macro][self.macro_type][self.macro_subtype])
+			try:
+				if self.macro_type != None:
+					if self.macro_subtype != None:
+						return(MACROS[self.macro][self.macro_type][self.macro_subtype])
+					else:
+						return(MACROS[self.macro][self.macro_type])
 				else:
-					return(MACROS[self.macro][self.macro_type])
-			else:
-				return(MACROS[self.macro])
+					return(MACROS[self.macro])
+			except KeyError:
+				self.macro_comment_out = True
+				print(self.line)
+			except TypeError:
+				self.macro_comment_out = True
+				print(self.line)
 		else:
 			return # 无对应的macro type
 
@@ -167,7 +181,10 @@ class ScenarioLine:
 						voice_number = '%05x' % int(voice_split[1], 16)
 						voice_desc = voices_list.get(voice_number, '')
 						par_key = 'storage'
-						par_value = '%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
+						if voice_desc:
+							par_value = '%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
+						else:
+							par_value = '%s_%s' % (voice_split[0], voice_number)
 					except ValueError: # '_____' 或其它
 						self.macro_comment_out = True
 						#par_key = 'storage'
@@ -388,14 +405,24 @@ class ScenarioMessage:
 		content = content.replace(b'\xec\x5c', b'[nusz]')
 		content = content.replace(b'\xec\x59', b'[ansz]')
 		content = content.replace(b'\xec\x5b', b'[ingz]')
+		content = content.replace(b'\xec\x40', b'[troya]')
+		content = content.replace(b'\xec\x41', b'[aero]')
+		content = content.replace(b'\xec\x42', b'[atlas]')
+		content = content.replace(b'\xec\x43', b'[margos]')
+		content = content.replace(b'\xec\x44', b'[keraino]')
 		content = content.replace(b'\xec\x45', b'[heart]')
 		content = content.replace(b'\xec\x50', b'[wacky len=3]')
+		content = content.replace(b'\xec\x51', b'[wacky len=5]')
 		content = content.replace(b'\xec\x52', b'[wacky len=6]')
 		content = content.replace(b'\xec\x53', b'[wacky len=9]')
 		content = content.replace(b'\xec\x54', b'[wacky len=12]')
+		content = content.replace(b'\xec\x55', b'[wacky len=13]')
+		content = content.replace(b'\xec\x56', b'[wacky len=14]')
+		content = content.replace(b'\xec\x57', b'[wacky len=15]')
+		content = content.replace(b'\xec\x58', b'[wacky len=16]')
 		# 处理Line宏
 		content = re.sub(b'((?:\xec\x4a)(?:\xec\x46)*(?:\xec\x48))',
-			lambda m: b'[line len=' + str(int(len(m.group(1))/2)).encode(ENCODING) + b']', content)
+			self.get_line_macro, content)
 		# 处理Block宏
 		content = re.sub(b'((?:\xec\x4b)(?:\xec\x47)*(?:\xec\x49))',
 			lambda m: b'[block len=' + str(int(len(m.group(1))/2)).encode(ENCODING) + b']', content)
@@ -434,6 +461,7 @@ class ScenarioMessage:
 			content = re.sub('@m(\d)', self.replace_font_edge, content)
 		# 斜体
 		content = content.replace('@i', '[font italic=1]')
+		content = content.replace('@e', '[er]')
 
 		# 替换特殊字符
 		content = content.replace('〜', '～')
@@ -446,6 +474,14 @@ class ScenarioMessage:
 			edgeline = '@font ' + edgetext
 			self.scenario_handler.newlines.append(edgeline)
 		return '' # 替换为空
+
+	# For re.sub
+	@classmethod
+	def get_line_macro(cls, m):
+		text = b'[line'
+		if MODE == 'hollow': text += b' len='
+		text += str(len(m.group(1))//2).encode(ENCODING) + b']'
+		return text
 
 	# For re.sub
 	@classmethod
@@ -510,6 +546,9 @@ class ScenarioFile:
 			if not line == '':
 				new_file += line + '\n'
 		new_file = new_file.replace('\n\n', '\n') # 去除多余的换行
+		#if MODE == 'fate':
+		#	new_file = new_file.replace('@fadein storage=WHITE_F', '@flushover')
+		#	new_file = new_file.replace('@fadein storage=BLACK_F', '@blackout')
 		fs.write(new_file)
 		fs.close()
 
