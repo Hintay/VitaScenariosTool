@@ -187,6 +187,8 @@ class ScenarioLine:
 							par_value = '%s_%s' % (voice_split[0], voice_number)
 					except ValueError: # '_____' 或其它
 						self.macro_comment_out = True
+					except IndexError:
+						self.macro_comment_out = True
 						#par_key = 'storage'
 						#par_value = '%s_%s' % (voice_split[0], voice_split[1])
 				elif self.macro == 'WTVT': # 语音等待标签
