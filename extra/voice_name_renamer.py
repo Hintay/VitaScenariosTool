@@ -32,8 +32,7 @@ class ChangeVoiceName:
 			for f in files:
 				if f.endswith('opus'):
 					if self.need_shrine_fix:
-						self.shrine_fix(root, f)
-						continue
+						if self.shrine_fix(root, f): continue
 
 					voice_number = self.match_number(os.path.splitext(f)[0])
 					try:
