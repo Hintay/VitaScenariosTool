@@ -1,26 +1,40 @@
 # Voice File Names Renamer
 # comes with ABSOLUTELY NO WARRANTY.
-# Copyright (C) 2016 Hintay <hintay@me.com>
+# Copyright (C) 2016-2017 Hintay <hintay@me.com>
 #
 # 批量修改语音文件名
 
 from voices_character import *
 import os
 import sys
+import logging
 
 hex_files = {'voice1':'03e5a.opus', 'voice2':'04e21.opus'}
 
+# Config Logger
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger()
+fileLog = logging.FileHandler('renamer.log', 'w', 'utf-8')
+formatter = logging.Formatter('%(levelname)s: %(message)s')
+fileLog.setFormatter(formatter)
+logger.addHandler(fileLog)
+
 class ChangeVoiceName:
 	def __init__(self, folder):
+		logger.info("Processing directory %s" % folder)
 		self.folder = folder
 		self.hex_mod = os.path.exists(os.path.join(self.folder, hex_files[self.folder]))
+		self.need_shrine_fix = os.path.exists(os.path.join(self.folder, 'EMA_01_ARC_0000.opus'))
 		self.loop_file_list()
 
 	def loop_file_list(self):
 		for root, dirs, files in os.walk(self.folder):
 			for f in files:
 				if f.endswith('opus'):
-					if self.shrine_fix(root, f): continue
+					if self.need_shrine_fix:
+						self.shrine_fix(root, f)
+						continue
+
 					voice_number = self.match_number(os.path.splitext(f)[0])
 					try:
 						if self.hex_mod:
@@ -52,19 +66,20 @@ class ChangeVoiceName:
 
 		if(file_name == new_name): return
 		try:
-			print('>> Rename %s to %s' % (file_name, new_name), file=sys.stderr)
+			logger.info('>> Rename %s to %s' % (file_name, new_name))
 			os.rename(os.path.join(root_path, file_name), os.path.join(root_path, new_name))
 		except WindowsError:
-			print('   Rename FAILED!', file=sys.stderr)
+			logger.error('   Rename FAILED!')
 
+	# 用于修复前期脚本所导致的问题文件名
 	def shrine_fix(self, root_path, file_name):
 		if (file_name.startswith('EMA_') and file_name[4] != '_') or (file_name.startswith('KUJI') and (file_name[4] != '_' and file_name[4] != 'F')):
 			new_name = file_name[:4] + '_' + file_name[4:]
 			try:
-				print('>> Rename %s to %s' % (file_name, new_name), file=sys.stderr)
+				logger.info('>> [Shrine Fix] Rename %s to %s' % (file_name, new_name))
 				os.rename(os.path.join(root_path, file_name), os.path.join(root_path, new_name))
 			except WindowsError:
-				print('   Rename FAILED!', file=sys.stderr)
+				logger.error('   Rename FAILED!')
 			return True
 		else:
 			return False
@@ -84,11 +99,11 @@ class ChangeVoiceName:
 def change_filenames():
 	for folder in ['voice1', 'voice2']:
 		ChangeVoiceName(folder)
-	print("DONE!")
+	logger.info("DONE!")
 
 if __name__ == '__main__':
 	if os.path.exists('voice1') and os.path.exists('voice2'):
 		change_filenames()
 	else:
-		print('Error: please put this script in the outer layer of the voice1 and voice2 folder.')
+		logger.error('please put this script in the outer layer of the voice1 and voice2 folder.')
 		sys.exit(20)
