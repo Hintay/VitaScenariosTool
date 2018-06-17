@@ -21,109 +21,119 @@
 
 import os
 import sys
-from struct import unpack, pack
+from struct import unpack
 import argparse
 
+
 class TrophyFile:
-	def __init__(self, input_file, output_folder):
-		self.desc_index = []
-		self.output_folder = output_folder
-		self.check_output_folder()
+    def __init__(self, input_file, output_folder):
+        self.desc_index = []
+        self.number_of_entries = 0
+        self.output_folder = output_folder
+        self.check_output_folder()
 
-		print("Opening input file...", end="")
-		self.file_stream = open(input_file, 'rb')
-		print("OK!")
+        print("Opening input file...", end="")
+        self.file_stream = open(input_file, 'rb')
+        print("OK!")
 
-		self.get_header()
-		self.processing_file()
+        self.get_header()
+        self.processing_file()
 
-	def check_output_folder(self):
-		print("Creating output folder...", end="")
-		if os.path.isdir(self.output_folder):
-			print("EXISTS!")
-		else:
-			os.mkdir(self.output_folder)
-			print("OK!")
+    def check_output_folder(self):
+        print("Creating output folder...", end="")
+        if os.path.isdir(self.output_folder):
+            print("EXISTS!")
+        else:
+            os.mkdir(self.output_folder)
+            print("OK!")
 
-	def get_header(self):
-		print("Getting header size...", end="")
-		self.file_stream.seek(100)
-		header_size, = unpack('>L', self.file_stream.read(4))
-		self.number_of_entries = (header_size // 0x40) - 1
-		print("OK!")
+    def get_header(self):
+        print("Getting header size...", end="")
+        self.file_stream.seek(100)
+        header_size, = unpack('>L', self.file_stream.read(4))
+        self.number_of_entries = (header_size // 0x40) - 1
+        print("OK!")
 
-	def processing_file(self):
-		for i in range(self.number_of_entries):
-			file_name = self.get_file_name(i)
-			entry_data = self.get_file_content(i)
-			self.output_file(file_name, entry_data)
+    def processing_file(self):
+        for i in range(self.number_of_entries):
+            file_name = self.get_file_name(i)
+            entry_data = self.get_file_content()
+            self.output_file(file_name, entry_data)
 
-		self.file_stream.close()
-		print("\nAll done! Bye bye :-)\n")
+        self.file_stream.close()
+        print("\nAll done! Bye bye :-)\n")
 
-	def get_file_name(self, index):
-		print("\nGetting filename...", end="")
-		self.file_stream.seek(0x40 + index * 0x40)
-		file_name = read_0_string(self.file_stream.read(16))
-		print(file_name)
-		return file_name
+    def get_file_name(self, index):
+        print("\nGetting filename...", end="")
+        self.file_stream.seek(0x40 + index * 0x40)
+        file_name = read_0_string(self.file_stream.read(16))
+        print(file_name)
+        return file_name
 
-	def get_file_content(self, index):
-		print(">>\tGetting file offset and size...", end="")
-		self.file_stream.seek(16, 1)
-		offset, size = unpack('>QQ', self.file_stream.read(16))
-		print("OK!")
-		#print("\t\t[offset: %d, size: %d]" % (offset, size))
+    def get_file_content(self, index=None):
+        print(">>\tGetting file offset and size...", end="")
+        if index is not None:
+            self.file_stream.seek(0x40 + index * 0x40 + 16, 1)
+        else:
+            self.file_stream.seek(16, 1)
+        offset, size = unpack('>QQ', self.file_stream.read(16))
+        print("OK!")
+        # print("\t\t[offset: %d, size: %d]" % (offset, size))
 
-		print(">>\tGetting file content...", end="")
-		self.file_stream.seek(offset)
-		entry_data = self.file_stream.read(size)
-		print("OK!")
+        print(">>\tGetting file content...", end="")
+        self.file_stream.seek(offset)
+        entry_data = self.file_stream.read(size)
+        print("OK!")
 
-		return entry_data
+        return entry_data
 
-	def output_file(self, file_name, entry_data):
-		print(">>\tOpening output file...", end="")
-		fs = open(os.path.join(self.output_folder, file_name), 'wb')
-		print("OK!")
-		print(">>\tWriting output file content...", end="")
-		fs.write(entry_data)
-		fs.close()
-		print("DONE!")
+    def output_file(self, file_name, entry_data):
+        print(">>\tOpening output file...", end="")
+        fs = open(os.path.join(self.output_folder, file_name), 'wb')
+        print("OK!")
+        print(">>\tWriting output file content...", end="")
+        fs.write(entry_data)
+        fs.close()
+        print("DONE!")
+
 
 def read_0_string(bstr):
-	try:
-		return bstr[0:bstr.index(b'\x00')].decode()
-	except ValueError:
-		return bstr.decode()
+    try:
+        return bstr[0:bstr.index(b'\x00')].decode()
+    except ValueError:
+        return bstr.decode()
+
 
 def parse_args():
-	parser = argparse.ArgumentParser(description=__doc__)
-	parser.add_argument('input', metavar='input_file', help='path of your TROPHY.TRP.')
-	parser.add_argument('output', metavar='output_folder', help='output folder.')
-	return parser, parser.parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('input', metavar='input_file', help='path of your TROPHY.TRP.')
+    parser.add_argument('output', metavar='output_folder', help='output folder.')
+    return parser, parser.parse_args()
+
 
 def convert_verb(args):
-	if not os.path.exists(args.input):
-		parser.print_usage()
-		print('Error: the following file does not exist: ' + args.input)
-		sys.exit(20)
+    if not os.path.exists(args.input):
+        parser.print_usage()
+        print('Error: the following file does not exist: ' + args.input)
+        sys.exit(20)
 
-	if os.path.isfile(args.input):
-		TrophyFile(args.input, args.output)
-	else: # 文件夹
-		parser.print_usage()
-		print('Error: the following input does not file: ' + args.input)
-		sys.exit(20)
+    if os.path.isfile(args.input):
+        TrophyFile(args.input, args.output)
+    else:  # 文件夹
+        parser.print_usage()
+        print('Error: the following input does not file: ' + args.input)
+        sys.exit(20)
+
 
 if __name__ == '__main__':
-	print("TROPHY.TRP Extractor")
-	print("Copyright (C) 2016 Hintay")
-	print("Portions Copyright (C) 2010 Red Squirrel\n")
+    print("TROPHY.TRP Extractor")
+    print("Copyright (C) 2016 Hintay")
+    print("Portions Copyright (C) 2010 Red Squirrel\n")
 
-	parser, args = parse_args()
-	if (args.input != None): convert_verb(args)
-	else:
-		parser.print_usage()
-		sys.exit(20)
-	sys.exit(0)
+    parser, args = parse_args()
+    if args.input is not None:
+        convert_verb(args)
+    else:
+        parser.print_usage()
+        sys.exit(20)
+    sys.exit(0)
