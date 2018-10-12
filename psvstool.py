@@ -1,22 +1,28 @@
 # Vita Scenarios Converter
 # comes with ABSOLUTELY NO WARRANTY.
-# Copyright (C) 2016 Hintay <hintay@me.com>
+# Copyright (C) 2016-2018 Hintay <hintay@me.com>
 #
 # The scenario files that extracted from PSV conversion utility
 
 from macroslist import *
-from extra.voices_character import *  # in 'extra' directory
-import os
 import re
 import sys
 import codecs
 import argparse
+from pathlib import Path
+from collections import defaultdict
 
-ENCODING = '932'
+# 'fate', 'hollow' or other
 MODE = 'hollow'
+ENCODING = '932'
 
 # 临时处理
-if MODE != 'hollow':
+if MODE == 'fate':
+    from extra.voices_character_fsn import *  # in 'extra' directory
+    BGM = {}
+elif MODE == 'hollow':
+    from extra.voices_character import *  # in 'extra' directory
+else:
     voices_list = {}
     special_name = {}
     BGM = {}
@@ -24,7 +30,7 @@ if MODE != 'hollow':
 
 # 处理行
 class ScenarioLine:
-    def __init__(self, line):
+    def __init__(self, line, voice_number_dict):
         self.line = line
         self.newline = ''
         self.macro = None
@@ -34,9 +40,10 @@ class ScenarioLine:
         self.macro_convert = True
         self.macro_converted = None
         self.parameters = []
-        self.newparameters = ''
+        self.new_parameters = ''
         self.is_message = False
         self.message_id = None
+        self.voice_number_dict = voice_number_dict
         self.match_line()
 
     # 正则匹配提取数据
@@ -180,15 +187,23 @@ class ScenarioLine:
                         par_value = '"%s"' % par_value[4:]
                 elif self.macro == 'VPLY':  # 语音标签
                     voice_split = par_value.split(',')
+                    char_name = voice_split[0]
+                    if MODE == 'fate':
+                        char_name = char_name.lower()
                     try:  # 格式检查
                         # par_value = '%s_%05x' % (voice_split[0], int(voice_split[1], 16))
                         voice_number = '%05x' % int(voice_split[1], 16)
                         voice_desc = voices_list.get(voice_number, '')
                         par_key = 'storage'
                         if voice_desc:
-                            par_value = '%s%s_%s_%s' % (voice_desc[0], voice_desc[1], voice_split[0], voice_number)
+                            if MODE == 'fate':
+                                converted_voice_number = '%03d0' % self.voice_number_dict[char_name]
+                                self.voice_number_dict[char_name] += 1
+                            else:
+                                converted_voice_number = voice_number
+                            par_value = '%s%s_%s_%s' % (voice_desc[0], voice_desc[1], char_name, converted_voice_number)
                         else:
-                            par_value = '%s_%s' % (voice_split[0], voice_number)
+                            par_value = '%s_%s' % (char_name, voice_number)
                     except ValueError:  # '_____' 或其它
                         self.macro_comment_out = True
                     except IndexError:
@@ -208,7 +223,7 @@ class ScenarioLine:
                     say_key = par_value.split(',')[1]
                     say_value = SAY_NAME.get(say_key, say_key)
                     if say_value:
-                        self.newparameters += ' name=%s' % say_value
+                        self.new_parameters += ' name=%s' % say_value
                     return
                 elif self.macro == 'KFCH' and par_value == 'extoff=0':  # 修复错误
                     par_key = 'textoff'
@@ -217,9 +232,9 @@ class ScenarioLine:
             if par_key:
                 if par_value == '':
                     par_value = '""'
-                self.newparameters += ' %s=%s' % (par_key, par_value)
+                self.new_parameters += ' %s=%s' % (par_key, par_value)
             elif par_value:
-                self.newparameters += ' ' + par_value
+                self.new_parameters += ' ' + par_value
 
     def get_macro(self):
         if self.is_message:  # 文本内容直接退出
@@ -231,7 +246,7 @@ class ScenarioLine:
             if self.macro_comment_out:
                 self.newline += ';'
             self.newline += self.macro_converted
-            self.newline += self.newparameters
+            self.newline += self.new_parameters
         else:
             self.newline += ';%s' % self.line.decode(ENCODING)
 
@@ -250,12 +265,12 @@ class ScenarioMessage:
         self.new_line = ''  # 处理好的行
 
     # 添加一行
-    def add_line(self, lineinfo):
+    def add_line(self, lineinfo: ScenarioLine):
         if lineinfo.is_message:  # 若为 Message
-            if lineinfo.messageid:  # 有 ID 则加上 ID 注释
+            if lineinfo.message_id:  # 有 ID 则加上 ID 注释
                 if self.new_line:
                     self.append_message_line()
-                self.scenario_handler.newlines.append(';%d, %s' % (int(lineinfo.messageid, 16), lineinfo.messageid))
+                self.scenario_handler.newlines.append(';%d, %s' % (int(lineinfo.message_id, 16), lineinfo.message_id))
                 self.is_start_line = True
             else:
                 self.is_start_line = False
@@ -526,18 +541,17 @@ class ScenarioMessage:
 
 # 处理剧本文件
 class ScenarioFile:
-    def __init__(self, file_path):
+    def __init__(self, file_path: Path):
         self.lines = None
         self.last_message_index = -1
         self.newlines = []
         self.file_path = file_path
-        self.filename = os.path.basename(file_path)
-        self.basename = os.path.splitext(self.filename)[0]
+        self.voice_number_dict = defaultdict(int)
         self.open_file()
         self.output_file()
 
     def open_file(self):
-        fs = open(self.file_path, 'rb')
+        fs = self.file_path.open('rb')
         text = fs.read()
         self.lines = text.split(b';')
         fs.close()
@@ -546,7 +560,7 @@ class ScenarioFile:
     def processing_file(self):
         message_handler = ScenarioMessage(self)
         for line in self.lines:
-            scenario_line = ScenarioLine(line)  # 处理行
+            scenario_line = ScenarioLine(line, self.voice_number_dict)  # 处理行
             # [hfu] [hfl]
             if scenario_line.macro == 'HFUL':
                 message_handler.is_HFUL = True
@@ -561,7 +575,7 @@ class ScenarioFile:
             self.newlines.append(scenario_line.newline)
 
     def output_file(self):
-        fs = codecs.open(os.path.splitext(self.file_path)[0] + '.ks', 'w', 'u16')  # 文本方式打开
+        fs = codecs.open(self.file_path.with_suffix('.ks'), 'w', 'u16')  # 文本方式打开
         new_file = ''
         for line in self.newlines:
             if not line == '':
@@ -581,19 +595,19 @@ def parse_args():
 
 
 def convert_verb(args):
-    if not os.path.exists(args.input):
+    input_path = Path(args.input)
+    if not input_path.exists():
         parser.print_usage()
         print('Error: the following file or folder does not exist: ' + args.input, file=sys.stderr)
         sys.exit(20)
 
-    if os.path.isfile(args.input):
+    if input_path.is_file():
         ScenarioFile(args.input)
     else:  # 文件夹
-        for root, dirs, files in os.walk(args.input):
-            for file in files:
-                if file.endswith('ini'):
-                    print(file, file=sys.stderr)
-                    ScenarioFile(os.path.join(root, file))
+        for file_path in input_path.glob('**/*'):
+            if file_path.suffix == '.ini':
+                print(file_path, file=sys.stderr)
+                ScenarioFile(file_path)
 
 
 if __name__ == '__main__':

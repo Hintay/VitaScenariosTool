@@ -1,6 +1,7 @@
 # Voices Name Correspondence List Extractor
 # comes with ABSOLUTELY NO WARRANTY.
 # Copyright (C) 2016 Hintay <hintay@me.com>
+# FSN support by Quibi
 #
 # 提取语音名称与角色对应的列表
 
@@ -10,6 +11,19 @@ import codecs
 import argparse
 
 route_list = {
+    # Fate/stay night
+    'プロローグ1日目': 'prg01',
+    'プロローグ2日目': 'prg02',
+    'プロローグ3日目': 'prg03',
+    'セイバーエピローグ': 'savep',
+    '凛エピローグ': 'rinep',
+    '凛エピローグ2': 'rinep2',
+    '桜エピローグ': 'sakep',
+    '桜エピローグ2': 'sakep2',
+    'タイガー道場すぺしゃる': 'tigsp',
+    'ラストエピソード': 'lstep',
+
+    # Fate/hollow ataraxia
     'カレン': 'KAREN',
     '合宿編': 'CAMPH',
     '夜編1': 'NGH01',
@@ -39,6 +53,17 @@ route_list = {
     '魔境編': 'MAKYO'
 }
 
+# Fate/stay night
+fsn_routes = ['セイバー', '凛', '桜']
+routes_to_days = {'セイバー': 15, '凛': 14, '桜': 16}
+routes_to_names = {'セイバー': 'sav', '凛': 'rin', '桜': 'sak'}
+
+days = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五', '十六']
+for fsn_route in fsn_routes:
+    days_count = routes_to_days[fsn_route]
+    for i, day in enumerate(days[:days_count]):
+        route_list[f'{fsn_route}ルート{day}日目'] = f'{routes_to_names[fsn_route]}{i+1:02}'
+
 
 class VoiceFile:
     def __init__(self):
@@ -48,7 +73,11 @@ class VoiceFile:
         basename = os.path.splitext(filename)[0]
         basename_split = basename.split('-')
         if len(basename_split) < 2:
-            return
+            route_with_day = basename
+            scene_number = ''
+        else:
+            route_with_day = basename_split[0]
+            scene_number = basename_split[1]
 
         fs = open(filename, 'rb')
         text = fs.read()
@@ -56,9 +85,12 @@ class VoiceFile:
         for line in lines:
             if line[:5] == b'_VPLY':
                 voices = line[6:].decode().split(',')
-                if voices[1] in self.voice_filename:
+                character = voices[0]
+                voice_number = voices[1]
+
+                if voice_number in self.voice_filename:
                     continue
-                self.voice_filename[voices[1]] = [voices[0], route_list[basename_split[0]], basename_split[1]]
+                self.voice_filename[voice_number] = [route_list[route_with_day], scene_number, character]
         fs.close()
 
     def output_file(self):
